@@ -1,0 +1,61 @@
+---
+title: "Dallas, TX COVID-19 Cases (Total & New)"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+rm(list=ls())
+
+library(tidyverse)
+library(patchwork)
+```
+
+```{r}
+c <- openxlsx::read.xlsx(xlsxFile = "./data/Texas COVID-19 Case Count Data by County.xlsx")
+
+names(c)[3:ncol(c)] <- sub("Case..", "", names(c)[3:ncol(c)])
+
+cl <- c %>%
+  gather(data = ., key = date, value = totalcase, grep("0", names(c)))
+  
+cl$totalcase <- as.numeric(sub(",", "", cl$totalcase, fixed = TRUE))
+
+# extract just dallas data
+d <- cl[cl$County.Name=="Dallas",]
+
+d$newcase <- NA
+d$newcase <- 0
+for(i in 2:nrow(d)){
+  d$newcase[i] <- d$totalcase[i] - d$totalcase[i-1]
+}
+
+d %>%
+  ggplot(aes(x=date, y=newcase)) +
+  geom_point() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  ggtitle("New Case in Dallas over Time")
+
+
+g1 <- cl %>%
+  filter(County.Name=="Dallas") %>% # only get dallas's data
+    ggplot(aes(x=date, y=totalcase)) +
+    geom_point() +
+    ylab("Total Cases") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+    ggtitle("Total Case in Dallas over Time")
+
+
+g2 <- d %>%
+  ggplot(aes(x=date, y=newcase)) +
+  geom_bar(stat = "identity", fill="steelblue") +
+  ylab("New Cases") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  ggtitle("New Case in Dallas over Time")
+
+
+g1/g2
+
+```
+
