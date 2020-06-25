@@ -26,7 +26,10 @@ theme_set(theme_bw() +
 
 ```
 
-```{r}
+# Data
+**Data is downloaded from https://dshs.texas.gov/coronavirus/**
+
+```{r, warning=F, message=F}
 # Download data from dshs.texas.gov
 
 download.file(url = "https://dshs.texas.gov/coronavirus/TexasCOVID19DailyCountyCaseCountData.xlsx", destfile = "./data/TexasCOVID19DailyCountyCaseCountData.xlsx", mode="wb")
@@ -62,6 +65,8 @@ case_long <- case %>%
   
 case_long$totalcase <- as.numeric(sub(",", "", case_long$totalcase, fixed = TRUE))
 
+case_long$date <- as.Date(case_long$date, format = "%m-%d")
+
 # extract just dallas data
 d <- case_long %>% filter(`County Name`=="Dallas")
 
@@ -76,23 +81,23 @@ for(i in 2:nrow(d)){
 ```{r plot_dallas_cases, fig.width=10, fig.height=8, warning=F}
 g1 <- case_long %>%
   filter(`County Name`=="Dallas") %>% # only get dallas's data
-  ggplot(aes(x=date, y=totalcase)) +
-  geom_point() +
-  geom_vline(xintercept = "04-30", color="firebrick", linetype="dashed", alpha=0.8) +
-  annotate(geom = "text", x = "05-04", y = 0, label = "Re-open") +
-  xlab("Date") +
-  ylab("Total Cases") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  ggtitle("Total Case in Dallas over Time") 
-
+    ggplot(aes(x=date, y=totalcase)) +
+    geom_point() +
+    geom_vline(xintercept = as.Date("2020-04-30","%Y-%m-%d"), color="firebrick", linetype="dashed", alpha=0.8) +
+    annotate(geom = "text", x = as.Date("2020-05-04", "%Y-%m-%d"), y = 0, label = "Re-open") +
+    scale_x_date(name = 'Date', date_breaks = '5 days', date_labels = '%m-%d') +
+    ylab("Total Cases") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+    ggtitle("Total Case in Dallas over Time") 
 
 g2 <- d %>%
   ggplot(aes(x=date, y=newcase)) +
   geom_bar(stat = "identity", fill="steelblue") +
-  geom_segment(data=d, mapping=aes(x="04-28", y=205, xend="04-30", yend=190),  # when Texas re-opened
+  geom_segment(data=d, mapping=aes(x=as.Date("2020-04-28", "%Y-%m-%d"), y=205, 
+                                   xend=as.Date("2020-04-30","%Y-%m-%d"), yend=190),  # when Texas re-opened
                arrow=arrow(length = unit(0.2, "inches")), size=1, color="firebrick") +
-  annotate(geom = "text", x = "04-28", y = 230, label = "Re-open") +
-  xlab("Date") +
+  annotate(geom = "text", x = as.Date("2020-04-28","%Y-%m-%d"), y = 230, label = "Re-open") +
+  scale_x_date(name = 'Date', date_breaks = '5 days', date_labels = '%m-%d') +
   ylab("New Cases") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   ggtitle("New Case in Dallas over Time")
@@ -113,6 +118,7 @@ df <- data.frame(Date=names(case)[(which(names(case)=="04-21")+1):ncol(case)-1],
 
 df$Positive.Rate <- df$Total.Cases/df$Total.Test.Performed*100
 
+df$Date <- as.Date(df$Date, "%m-%d")
 
 ## Calculate new-test each day
 
@@ -135,7 +141,6 @@ for(i in 3:nrow(df)){
 
 df$Positive.Rate.Per.Day <- df$New.Case.Reported/df$New.Test.Reported *100
 df$Positive.Rate.Per.Day_5davg <- df$New.Case.Reported_5davg/df$New.Test.Reported_5davg *100
-
 ```
 
 
@@ -163,10 +168,12 @@ df$Positive.Rate.Per.Day_5davg <- df$New.Case.Reported_5davg/df$New.Test.Reporte
 g5 <- df %>%
         ggplot(aes(x=Date, y=New.Case.Reported_5davg)) +
         geom_bar(stat = "identity", fill="steelblue") +
-        ylab("New Test Per Day\n(5-day average)") +
-        geom_segment(data=d, mapping=aes(x="04-28", y=205, xend="04-30", yend=190),  # when Texas re-opened
+        geom_segment(data=d, mapping=aes(x=as.Date("2020-04-28", "%Y-%m-%d"), y=205, 
+                                         xend=as.Date("2020-04-30", "%Y-%m-%d"), yend=190),  # when Texas re-opened
                      arrow=arrow(length = unit(0.2, "inches")), size=1, color="firebrick") +
-        annotate(geom = "text", x = "04-28", y = 230, label = "Re-open") +
+        annotate(geom = "text", x = as.Date("2020-04-28", "%Y-%m-%d"), y = 230, label = "Re-open") +
+        scale_x_date(name = 'Date', date_breaks = '2 days', date_labels = '%m-%d') +
+        ylab("New Test Per Day\n(5-day average)") +
         theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
         ggtitle("New Test Per Day in Dallas over Time (5-day average)")
 
@@ -174,9 +181,10 @@ g6 <- df %>%
         ggplot(aes(x=Date, y=Positive.Rate.Per.Day_5davg)) +
         geom_point() +
         geom_hline(yintercept = 10, color="grey", linetype="dashed") +
-        geom_vline(xintercept = "04-30", color="firebrick", linetype="dashed", alpha=0.8) +
-        annotate(geom = "text", x = "05-02", y = 0, label = "Re-open") +
+        geom_vline(xintercept = as.Date("2020-04-30", "%Y-%m-%d"), color="firebrick", linetype="dashed", alpha=0.8) +
+        annotate(geom = "text", x = as.Date("2020-05-02", "%Y-%m-%d"), y = 0, label = "Re-open") +
         ylim(0,25) +
+        scale_x_date(name = 'Date', date_breaks = '2 days', date_labels = '%m-%d') +
         ylab("Positive Rate Per Day(%)\n(New Case Per Day/New Test Reported Per Day") +
         theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
         ggtitle("Est. Positive Rate Per Day in Dallas over Time (5-day average")
@@ -193,6 +201,7 @@ df_texas <- data.frame(Date = names(case)[(which(names(case)=="04-21")+1):ncol(c
 
 df_texas$Positive.Rate <- df_texas$Total.Cases/df_texas$Total.Test.Performed*100
 
+df_texas$Date <- as.Date(df_texas$Date, "%m-%d")
 
 df_texas$New.Test.Reported <- NA
 df_texas$New.Case.Reported <- NA
@@ -233,14 +242,15 @@ df_texas$Positive.Rate.Per.Day_5davg <- df_texas$New.Case.Reported_5davg/df_texa
 #         ggtitle("Positive Rate in Texas over Time")
 
 
-
 g9 <- df_texas %>%
         ggplot(aes(x=Date, y=New.Case.Reported_5davg)) +
         geom_bar(stat = "identity", fill="steelblue") +
-        ylab("New Test Per Day\n(5-day average)") +
-        geom_segment(data=d, mapping=aes(x="04-28", y=1300, xend="04-30", yend=1100),  # when Texas re-opened
+        geom_segment(data=d, mapping=aes(x=as.Date("2020-04-28", "%Y-%m-%d"), y=1300, 
+                                         xend=as.Date("2020-04-30", "%Y-%m-%d"), yend=1100),  # when Texas re-opened
                      arrow=arrow(length = unit(0.2, "inches")), size=1, color="firebrick") +
-        annotate(geom = "text", x = "04-28", y = 1500, label = "Re-open") +
+        annotate(geom = "text", x = as.Date("2020-04-28", "%Y-%m-%d"), y = 1500, label = "Re-open") +
+        scale_x_date(name = 'Date', date_breaks = '2 days', date_labels = '%m-%d') +  
+        ylab("New Test Per Day\n(5-day average)") +
         theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
         ggtitle("New Test Per Day in Texas over Time (5-day average)")
 
@@ -248,9 +258,10 @@ g10 <- df_texas %>%
         ggplot(aes(x=Date, y=Positive.Rate.Per.Day_5davg)) +
         geom_point() +
         geom_hline(yintercept = 10, color="grey", linetype="dashed") +
-        geom_vline(xintercept = "04-30", color="firebrick", linetype="dashed", alpha=0.8) +
-        annotate(geom = "text", x = "05-02", y = 0, label = "Re-open") +  
+        geom_vline(xintercept = as.Date("2020-04-30", "%Y-%m-%d"), color="firebrick", linetype="dashed", alpha=0.8) +
+        annotate(geom = "text", x = as.Date("2020-05-02", "%Y-%m-%d"), y = 0, label = "Re-open") +
         ylim(0,25) +
+        scale_x_date(name = 'Date', date_breaks = '2 days', date_labels = '%m-%d') +
         ylab("Positive Rate Per Day(%)\n(New Case Per Day/New Test Reported Per Day") +
         theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
         ggtitle("Est. Positive Rate Per Day in Texas over Time (5-day average)")
