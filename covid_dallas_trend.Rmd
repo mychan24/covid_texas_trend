@@ -185,7 +185,7 @@ g5/g6
 ```
 
 
-# Texas Satate Trend
+# Texas State Trend
 ```{r}
 df_texas <- data.frame(Date = names(case)[(which(names(case)=="04-21")+1):ncol(case)-1],
                        Total.Test.Performed = as.numeric(t[t$County=="TOTAL",2:ncol(t)]),
