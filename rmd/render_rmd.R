@@ -1,1 +1,1 @@
-rmarkdown::render(input = "rmd/covid_dallas_trend.Rmd")
+rmarkdown::render(input = "rmd/covid_dallas_trend.Rmd", output_file = "../docs/index.html")
