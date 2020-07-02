@@ -10,7 +10,6 @@ r_packages:
   - readxl
 os:
   - linux
-  - osx
 deploy:
   provider: pages                  # Specify the gh-pages deployment method
   skip_cleanup: true               # Don't remove files
