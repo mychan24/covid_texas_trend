@@ -1,2 +1,2 @@
 build:
-	Rscript render_rmd.R
+	Rscript rmd/render_rmd.R
