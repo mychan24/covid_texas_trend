@@ -1,0 +1,20 @@
+Title: Dallas County and Texas’s COVID-19 Case and Positive Test Rate Trend
+Version: 1.0
+Date: 2020-07-02
+Author: Micaela Chan [aut, cre]
+Authors@R: c(person(given = "Micaela", family = "Chan",
+    role = c("aut", "cre")))
+Description: Dallas County and Texas’s COVID-19 Case and Positive Test Rate Trend.
+License: MIT + file LICENSE
+URL: https://github.com/mychan24/covid_dallas_trend
+BugReports: https://github.com/mychan24/covid_dallas_trend/issues
+Depends:
+    R (>= 2.10)
+Imports:
+    rmarkdown,
+    tidyverse,
+    patchwork,
+    readxl
+Suggests:
+
+RoxygenNote: 5.0.1

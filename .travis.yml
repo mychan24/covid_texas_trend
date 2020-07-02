@@ -1,0 +1,12 @@
+language: r
+sudo: false
+script: make build
+cache: packages
+r_packages:
+  - rmarkdown
+  - tidyverse
+  - patchwork
+  - readxl
+os:
+  - linux
+  - osx
