@@ -1,7 +1,6 @@
 language: r
 root: false
-script:
-  - Rscript -e 'rmarkdown::render(input = "./rmd/covid_dallas_trend.Rmd", output_file = "./docs/index.html")'
+script: make build
 cache: packages
 r_packages:
   - rmarkdown
