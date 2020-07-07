@@ -130,7 +130,7 @@ for(i in 2:nrow(df)){
 }
 
 ## Smooth the per-day data over 5 days
-df$New.Test.Reported_7davg <- NA
+df$New.Case.Reported_7davg <- NA
 df$New.Test.Reported_7davg <- NA
 for(i in 3:nrow(df)){
   df$New.Case.Reported_7davg[i] <- mean(df$New.Case.Reported[(i-3):(i+3)], na.rm=T)
@@ -210,8 +210,9 @@ for(i in 2:nrow(df_texas)){
 }
 
 ## Smooth the per-day data over 5 days
-df_texas$New.Test.Reported_7davg <- NA
 df_texas$New.Case.Reported_7davg <- NA
+df_texas$New.Test.Reported_7davg <- NA
+
 for(i in 3:nrow(df_texas)){
   df_texas$New.Case.Reported_7davg[i] <- mean(df_texas$New.Case.Reported[(i-3):(i+3)], na.rm=T)
   df_texas$New.Test.Reported_7davg[i] <- mean(df_texas$New.Test.Reported[(i-3):(i+3)], na.rm=T)
