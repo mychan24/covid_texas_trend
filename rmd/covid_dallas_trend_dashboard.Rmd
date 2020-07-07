@@ -1,8 +1,13 @@
 ---
 title: "Dallas County and Texas's COVID-19: Trend in New Cases and Positive-Test-Rate"
+author: "M.C."
 output: 
   flexdashboard::flex_dashboard:
     orientation: rows
+    vertical_layout: fill
+    social: menu
+    source_code: https://github.com/mychan24/covid_dallas_trend
+
 ---
 <style>                     
 .navbar {
@@ -22,69 +27,52 @@ library(readxl)
 
 ### Set Theme for ggplot ###
 theme_set(theme_bw() +
-            theme(# plot.title.position = "plot",
-              strip.text = element_text(size=14, face="plain"),
+            theme(strip.text = element_text(size=14, face="plain"),
               axis.title = element_text(size=14, face=("plain")),
               plot.title = element_text(size=16, face=("plain")))
 )
 
+theme_mobile <- theme_bw() +
+              theme(strip.text = element_text(size=8, face="plain"),
+              axis.title = element_text(size=8, face=("plain")),
+              plot.title = element_text(size=12, face=("plain")))
 
-# --- Data Download
-# Download data from dshs.texas.gov
+# --- Download data from dshs.texas.gov --- #
 
-download.file(url = "https://dshs.texas.gov/coronavirus/TexasCOVID19DailyCountyCaseCountData.xlsx", destfile = "../data/TexasCOVID19DailyCountyCaseCountData.xlsx", mode="wb")
+# download.file(url = "https://dshs.texas.gov/coronavirus/TexasCOVID19DailyCountyCaseCountData.xlsx", destfile = "../data/TexasCOVID19DailyCountyCaseCountData.xlsx", mode="wb")
+# 
+# download.file(url = "https://dshs.texas.gov/coronavirus/TexasCOVID-19CumulativeTestsOverTimebyCounty.xlsx",
+#               destfile = "../data/COVID-19CumulativeTestTotalsbyCounty.xlsx", mode="wb")
 
-download.file(url = "https://dshs.texas.gov/coronavirus/TexasCOVID-19CumulativeTestsOverTimebyCounty.xlsx",
-              destfile = "../data/COVID-19CumulativeTestTotalsbyCounty.xlsx", mode="wb")
 
-
-# == Load Data == # 
-## Cases data
+# --- Load Case and Test Data --- #
 case <- read_excel(path = "../data/TexasCOVID19DailyCountyCaseCountData.xlsx",
                    skip =2, n_max = 258)
 
+## remove extra spaces
 names(case)[3:ncol(case)] <- gsub("\r", "", names(case)[3:ncol(case)])
 names(case)[3:ncol(case)] <- gsub("\n", "", names(case)[3:ncol(case)])
 names(case)[3:ncol(case)] <- gsub("Cases", "", names(case)[3:ncol(case)])
 names(case)[3:ncol(case)] <- gsub(" ", "", names(case)[3:ncol(case)])
 
-## Tests data 
 t <- read_excel(path = "../data/COVID-19CumulativeTestTotalsbyCounty.xlsx",
                 skip =1, n_max = 258)
 
 names(t)[2:ncol(t)] <- sub("Tests Through ", "", names(t)[2:ncol(t)])
 
-## Dallas county data warngling
-# Transform wide data to long data
-case_long <- case %>%
-  gather(data = ., key = date, value = totalcase, grep("0", names(case)))
-
-case_long$totalcase <- as.numeric(sub(",", "", case_long$totalcase, fixed = TRUE))
-
-case_long$date <- as.Date(case_long$date, format = "%m-%d")
-
-# extract just dallas data
-d <- case_long %>% filter(`County Name`=="Dallas")
-
-d$newcase <- NA
-d$newcase <- 0
-for(i in 2:nrow(d)){
-  d$newcase[i] <- d$totalcase[i] - d$totalcase[i-1]
-}
-
-
+# --- Dallas county data cleaning --- #
 ## Dallas Positive Rate data
 df <- data.frame(Date=names(case)[(which(names(case)=="04-21")+1):ncol(case)],
                  Total.Test.Performed = as.numeric(t[t$County=="Dallas",2:ncol(t)]),
                  Total.Cases = as.numeric(case[which(case$`County Name`=="Dallas"),(which(names(case)=="04-21")+1):ncol(case)-1]))
 
 df$Positive.Rate <- df$Total.Cases/df$Total.Test.Performed*100
-
 df$Date <- as.Date(df$Date, "%m-%d")
 
+# --- Calculate New-case per day &  Positive Rate --- #
 ## Calculate new-test each day
-df$New.Test.Reported <- NA
 df$New.Case.Reported <- NA
+df$New.Test.Reported <- NA
 for(i in 2:nrow(df)){
   df$New.Case.Reported[i] <- df$Total.Cases[i] - df$Total.Cases[i-1]
   df$New.Test.Reported[i] <- df$Total.Test.Performed[i] - df$Total.Test.Performed[i-1]
@@ -98,11 +86,10 @@ for(i in 3:nrow(df)){
   df$New.Test.Reported_7davg[i] <- mean(df$New.Test.Reported[(i-3):(i+3)], na.rm=T)
 }
 
-
-
 df$Positive.Rate.Per.Day <- df$New.Case.Reported/df$New.Test.Reported *100
 df$Positive.Rate.Per.Day_7davg <- df$New.Case.Reported_7davg/df$New.Test.Reported_7davg *100
 
+## Label a positive rate data point as levels
 df$Positive.Rate.Level <- NA
 df$Positive.Rate.Level[df$Positive.Rate.Per.Day_7davg<3] <- "Low"
 df$Positive.Rate.Level[df$Positive.Rate.Per.Day_7davg>=3 & df$Positive.Rate.Per.Day_7davg < 10] <- "Medium"
@@ -111,17 +98,16 @@ df$Positive.Rate.Level[df$Positive.Rate.Per.Day_7davg>=20] <- "Critical"
 df$Positive.Rate.Level <- factor(df$Positive.Rate.Level, levels=c("Low","Medium","High","Critical"))
 
 
-# -- Texas state-level data cleaning
+# --- Texas state-level data cleaning --- #
 df_texas <- data.frame(Date = names(case)[(which(names(case)=="04-21")+1):ncol(case)],
                        Total.Test.Performed = as.numeric(t[t$County=="TOTAL",2:ncol(t)]),
                        Total.Cases = as.numeric(case[which(case$`County Name`=="Total"), (which(names(case)=="04-21")+1):ncol(case)-1]))
 
 df_texas$Positive.Rate <- df_texas$Total.Cases/df_texas$Total.Test.Performed*100
-
 df_texas$Date <- as.Date(df_texas$Date, "%m-%d")
 
-df_texas$New.Test.Reported <- NA
 df_texas$New.Case.Reported <- NA
+df_texas$New.Test.Reported <- NA
 for(i in 2:nrow(df_texas)){
   df_texas$New.Case.Reported[i] <- df_texas$Total.Cases[i] - df_texas$Total.Cases[i-1]
   df_texas$New.Test.Reported[i] <- df_texas$Total.Test.Performed[i] - df_texas$Total.Test.Performed[i-1]
@@ -130,17 +116,15 @@ for(i in 2:nrow(df_texas)){
 ## Smooth the per-day data over 5 days
 df_texas$New.Case.Reported_7davg <- NA
 df_texas$New.Test.Reported_7davg <- NA
-
 for(i in 3:nrow(df_texas)){
   df_texas$New.Case.Reported_7davg[i] <- mean(df_texas$New.Case.Reported[(i-3):(i+3)], na.rm=T)
   df_texas$New.Test.Reported_7davg[i] <- mean(df_texas$New.Test.Reported[(i-3):(i+3)], na.rm=T)
 }
 
-
 df_texas$Positive.Rate.Per.Day <- df_texas$New.Case.Reported/df_texas$New.Test.Reported *100
 df_texas$Positive.Rate.Per.Day_7davg <- df_texas$New.Case.Reported_7davg/df_texas$New.Test.Reported_7davg *100
 
-
+## Label a positive rate data point as levels
 df_texas$Positive.Rate.Level <- NA
 df_texas$Positive.Rate.Level[df_texas$Positive.Rate.Per.Day_7davg<3] <- "Low"
 df_texas$Positive.Rate.Level[df_texas$Positive.Rate.Per.Day_7davg>=3 & df_texas$Positive.Rate.Per.Day_7davg < 10] <- "Medium"
@@ -150,12 +134,15 @@ df_texas$Positive.Rate.Level <- factor(df_texas$Positive.Rate.Level, levels=c("L
 
 ```
 
+COVID-19 Dallas County Trend
+=======================================================================
+
 Row 
 -----------------------------------------------------------------------
 ### Dallas County, TX New COVID Tests and Positive Test-Rate Over Time
 
 ```{r, fig.width=12, fig.height=6}
-g5 <- df %>%
+g1 <- df %>%
   ggplot(aes(x=Date, y=New.Test.Reported_7davg)) +
   geom_bar(stat = "identity", fill="#009a9a") +
   # Re-open vertical lines
@@ -168,7 +155,7 @@ g5 <- df %>%
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   ggtitle("New Tests Per Day in Dallas over Time (7-day average)")
 
-g6 <- df %>%
+g2 <- df %>%
   ggplot(aes(x=Date, y=Positive.Rate.Per.Day_7davg)) +
   geom_point(aes(color=Positive.Rate.Level)) +
   # Re-open vertical lines
@@ -193,11 +180,57 @@ g6 <- df %>%
   theme(axis.text.x = element_text(angle = 45, hjust = 1),
         legend.position = "none") 
 
-g5/g6
+g1/g2
 
 ```
 
+### Dallas County, TX New COVID Tests and Positive Test-Rate Over Time {.mobile}
 
+```{r, fig.width=6, fig.height=3}
+g1 <- df %>%
+  ggplot(aes(x=Date, y=New.Test.Reported_7davg)) +
+  geom_bar(stat = "identity", fill="#009a9a") +
+  # Re-open vertical lines
+  geom_vline(xintercept = as.Date("2020-04-30", "%Y-%m-%d"), color="firebrick", linetype="dashed", alpha=0.8) +
+  annotate(geom = "text", x = as.Date("2020-04-28", "%Y-%m-%d"),color="firebrick",  y = 4500, label = "Re-open") +
+  # plot settings
+  scale_x_date(name = 'Date', date_breaks = '5 days', date_labels = '%m-%d', 
+               limits = c(as.Date("2020-04-22", "%Y-%m-%d"), as.Date(df$Date[nrow(df)+1],"%Y-%m-%d"))) +
+  ylab("New Test Per Day\n(7-day average)") +
+  ggtitle("New Tests Per Day in Dallas over Time (7-day average)") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  theme_mobile
+  
+
+g2 <- df %>%
+  ggplot(aes(x=Date, y=Positive.Rate.Per.Day_7davg)) +
+  geom_point(aes(color=Positive.Rate.Level)) +
+  # Re-open vertical lines
+  geom_vline(xintercept = as.Date("2020-04-30", "%Y-%m-%d"), color="firebrick", linetype="dashed", alpha=0.8) +
+  annotate(geom = "text", x = as.Date("2020-04-28", "%Y-%m-%d"), color="firebrick",  y = 28, label = "Re-open") +
+  # Zone levels horizontal lines
+  geom_hline(yintercept = 3, color="grey", linetype="dashed") +
+  geom_hline(yintercept = 10, color="grey", linetype="dashed") +
+  geom_hline(yintercept = 20, color="grey", linetype="dashed") +
+  geom_hline(yintercept = 30, color="grey", linetype="dashed") +
+  annotate(geom = "text", x = as.Date("2020-04-22", "%Y-%m-%d"), y = 1, label = "Low", color="darkgreen") +
+  annotate(geom = "text", x = as.Date("2020-04-23", "%Y-%m-%d"), y = 6, label = "Medium", color="orange") +
+  annotate(geom = "text", x = as.Date("2020-04-22", "%Y-%m-%d"), y = 15, label = "High", color="#bb5516") +
+  annotate(geom = "text", x = as.Date("2020-04-22", "%Y-%m-%d"), y = 25, label = "Critical", color="red") +
+  # plot settings
+  scale_color_manual(values = c("orange","#bb5516","red")) +
+  scale_x_date(name = 'Date', date_breaks = '5 days', date_labels = '%m-%d', 
+               limits = c(as.Date("2020-04-22", "%Y-%m-%d"), as.Date(df$Date[nrow(df)+1],"%Y-%m-%d"))) +
+  scale_y_continuous(labels = function(x) paste0(x, "%")) +
+  ylab("Positive Rate Per Day(%)\n(New Case/New Test Per Day)") +
+  ggtitle("Est. Positive Rate Per Day in Dallas over Time (7-day average)") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.position = "none") +
+  theme_mobile
+
+g1/g2
+
+```
 
 
 Row {.tabset .tabset-fade}
@@ -205,9 +238,9 @@ Row {.tabset .tabset-fade}
 ### Dallas County, TX: Total Cases / New Confirmed Cases Over Time
 
 ```{r, fig.width=12, fig.height=6}
-g1 <- case_long %>%
-  filter(`County Name`=="Dallas") %>% # only get dallas's data
-    ggplot(aes(x=date, y=totalcase)) +
+g3 <- df %>%
+  # filter(`County Name`=="Dallas") %>% # only get dallas's data
+    ggplot(aes(x=Date, y=Total.Cases)) +
     geom_line() +
     # Re-open vertical lines
     geom_vline(xintercept = as.Date("2020-04-30", "%Y-%m-%d"), color="firebrick", linetype="dashed", alpha=0.8) +
@@ -218,8 +251,8 @@ g1 <- case_long %>%
     theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
     ggtitle("Total Cases in Dallas over Time") 
 
-g2 <- d %>%
-  ggplot(aes(x=date, y=newcase)) +
+g4 <- df %>%
+  ggplot(aes(x=Date, y=New.Case.Reported)) +
   geom_bar(stat = "identity", fill="#9a4d00") +
   # Re-open vertical lines
   geom_vline(xintercept = as.Date("2020-04-30", "%Y-%m-%d"), color="firebrick", linetype="dashed", alpha=0.8) +
@@ -231,13 +264,13 @@ g2 <- d %>%
   ggtitle("New Confirmed Cases in Dallas over Time")
   
 
-g1/g2
+g3/g4
 ```
 
 ### Texas State New COVID Tests and Positive Test-Rate Over Time
 
 ```{r, fig.width=12, fig.height=6}
-g9 <- df_texas %>%
+g5 <- df_texas %>%
   ggplot(aes(x=Date, y=New.Test.Reported_7davg)) +
   geom_bar(stat = "identity", fill="#009a9a") +
   # Re-open vertical lines
@@ -250,7 +283,7 @@ g9 <- df_texas %>%
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   ggtitle("New Tests Per Day in Dallas over Time (7-day average)")
 
-g10 <- df_texas %>%
+g6 <- df_texas %>%
   ggplot(aes(x=Date, y=Positive.Rate.Per.Day_7davg)) +
   geom_point(aes(color=Positive.Rate.Level)) +
   # Re-open vertical lines
@@ -275,6 +308,19 @@ g10 <- df_texas %>%
   theme(axis.text.x = element_text(angle = 45, hjust = 1),
         legend.position = "none") 
 
-g9/g10
+g5/g6
 ```
 
+
+
+
+About
+=======================================================================
+
+This report is generated using data from the [Texas Department of State Health Services](https://dshs.texas.gov/coronavirus/additionaldata/).
+
+One of the most quoted COVID metric in the media has been “Rate of Positive Tests”. However, most websites or data dashboards have been largely reporting state-level positive test rates. Metropolitan areas with large populations can likely generate its own positive test rate data, which may differ from the state-level summary. 
+
+Currently, this summary only includes Dallas County, TX. The next step would be to make this interactive and could show reports for other counties, if data is available. 
+
+This report will automatically update daily if the data is available.
