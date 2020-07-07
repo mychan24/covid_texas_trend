@@ -4,6 +4,7 @@ script: make build
 cache: packages
 r_packages:
   - rmarkdown
+  - flexdashboard
   - tidyverse
   - patchwork
   - readxl

@@ -16,7 +16,6 @@ color:white!important;
 
 ```{r setup, include=FALSE}
 library(flexdashboard)
-
 library(tidyverse)
 library(patchwork)
 library(readxl)
