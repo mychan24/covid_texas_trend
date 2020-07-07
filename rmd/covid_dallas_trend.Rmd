@@ -1,5 +1,5 @@
 ---
-title: "Dallas County and Texas's COVID-19: Trend in New Cases and Positive-Test-Rate "
+title: "Dallas County and Texas's COVID-19: Trend in New Cases and Positive-Test-Rate"
 date: '`r format(Sys.Date(), "%B %d, %Y")`'
 output: 
   html_document:
