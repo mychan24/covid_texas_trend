@@ -3,6 +3,7 @@ root: false
 script: make build
 cache: packages
 r_packages:
+  - shiny
   - rmarkdown
   - flexdashboard
   - tidyverse
