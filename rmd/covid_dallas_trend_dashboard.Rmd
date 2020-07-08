@@ -186,7 +186,7 @@ g1/g2
 
 ### Dallas County, TX New COVID Tests and Positive Test-Rate Over Time {.mobile}
 
-```{r, fig.width=6, fig.height=3}
+```{r, fig.width=12, fig.height=6}
 g1 <- df %>%
   ggplot(aes(x=Date, y=New.Test.Reported_7davg)) +
   geom_bar(stat = "identity", fill="#009a9a") +
