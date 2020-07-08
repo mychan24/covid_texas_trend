@@ -7,3 +7,8 @@ This a daily-updated summary of COVID-19 (1) new cases and (2) positive test rat
 
 * Data are downloaded from https://dshs.texas.gov/coronavirus/additionaldata/
 
+
+
+## Shiny Dashboard
+A dashboard that shows similar data for other Texas counties with over 3000 COVID tests (total) are avaialble in a [Shiny Dashboard](https://mychan24.shinyapps.io/covid_texas_county_trend_shiny/)
+
