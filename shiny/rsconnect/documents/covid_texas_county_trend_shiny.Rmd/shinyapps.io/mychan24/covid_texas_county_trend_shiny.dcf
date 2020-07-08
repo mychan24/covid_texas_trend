@@ -1,0 +1,12 @@
+name: covid_texas_county_trend_shiny
+title: covid_texas_county_trend_shiny
+username:
+account: mychan24
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 2549086
+bundleId: 3368158
+url: https://mychan24.shinyapps.io/covid_texas_county_trend_shiny/
+when: 1594227897.29732
+asMultiple: FALSE
+asStatic: FALSE

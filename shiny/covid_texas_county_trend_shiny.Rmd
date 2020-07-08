@@ -40,14 +40,14 @@ theme_mobile <- theme_bw() +
 
 # --- Download data from dshs.texas.gov --- #
 
-download.file(url = "https://dshs.texas.gov/coronavirus/TexasCOVID19DailyCountyCaseCountData.xlsx", destfile = "../data/TexasCOVID19DailyCountyCaseCountData.xlsx", mode="wb")
+download.file(url = "https://dshs.texas.gov/coronavirus/TexasCOVID19DailyCountyCaseCountData.xlsx", destfile = "./TexasCOVID19DailyCountyCaseCountData.xlsx", mode="wb")
 
 download.file(url = "https://dshs.texas.gov/coronavirus/TexasCOVID-19CumulativeTestsOverTimebyCounty.xlsx",
-              destfile = "../data/COVID-19CumulativeTestTotalsbyCounty.xlsx", mode="wb")
+              destfile = "./COVID-19CumulativeTestTotalsbyCounty.xlsx", mode="wb")
 
 
 # --- Load Case and Test Data --- #
-case <- read_excel(path = "../data/TexasCOVID19DailyCountyCaseCountData.xlsx",
+case <- read_excel(path = "./TexasCOVID19DailyCountyCaseCountData.xlsx",
                    skip =2, n_max = 258)
 
 ## remove extra spaces
@@ -56,8 +56,11 @@ names(case)[3:ncol(case)] <- gsub("\n", "", names(case)[3:ncol(case)])
 names(case)[3:ncol(case)] <- gsub("Cases", "", names(case)[3:ncol(case)])
 names(case)[3:ncol(case)] <- gsub(" ", "", names(case)[3:ncol(case)])
 
-t <- read_excel(path = "../data/COVID-19CumulativeTestTotalsbyCounty.xlsx",
+t <- read_excel(path = "./COVID-19CumulativeTestTotalsbyCounty.xlsx",
                 skip =1, n_max = 258)
+
+file.remove("./TexasCOVID19DailyCountyCaseCountData.xlsx")
+file.remove("./COVID-19CumulativeTestTotalsbyCounty.xlsx")
 
 names(t)[2:ncol(t)] <- sub("Tests Through ", "", names(t)[2:ncol(t)])
 # --- Texas county data cleaning and calculating positive test rate (ptr) --- #
@@ -146,13 +149,13 @@ df_texas$Positive.Rate.Level <- factor(df_texas$Positive.Rate.Level, levels=c("L
 Sidebar {.sidebar}
 ======================================================================
 
-```{r}
+```{r sidebar}
 # Define inputs
 selectInput('county_name', label = 'Select a county:', choices = counties, selected = "Dallas")
 
 ```
 
-Select a __County__ to see the trend of new COVID-19 tests and postive test rate over time. Only counties with more than 3000 total COVID tests are available. 
+Select a __County__ to see the trend of new COVID-19 tests and positive test rate over time. Only counties with more than 3000 total COVID tests are available. 
 
 __Positive test rate__ is one of the frequently quoted metric regarding COVID trend. Most websites/reports have available state-level  data. This dashboard makes available county-level data for counties with > 3000 COVID tests performed to date. 
 
@@ -171,7 +174,7 @@ Row
 -----------------------------------------------------------------------
 ### County-level COVID Positive Test Rate Over Time
 
-```{r, fig.width=14, fig.height=4}
+```{r fig_rate, fig.width=14, fig.height=4}
 
 renderPlot({
 df <- df_list[[input$county_name]]
@@ -212,7 +215,7 @@ Row
 -----------------------------------------------------------------------
 ### County-level New COVID Confirmed Cases & Tests Over Time
 
-```{r, fig.width=14, fig.height=6}
+```{r fig_casetest, fig.width=14, fig.height=6}
 
 renderPlot({
 df <- df_list[[input$county_name]]
