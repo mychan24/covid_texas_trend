@@ -1,13 +1,11 @@
 ---
-title: "Dallas County and Texas's COVID-19: Trend in New Cases and Positive-Test-Rate"
+title: "Texas County Trend Positive Test Rate Over Time"
 output: 
   flexdashboard::flex_dashboard:
     orientation: rows
     vertical_layout: fill
     social: menu
     source_code: https://github.com/mychan24/covid_dallas_trend
-    includes:
-      after_body: footer.html
 runtime: shiny
 
 ---
@@ -21,7 +19,7 @@ color:white!important;
 }
 </style>         
 
-```{r setup, include=FALSE}
+```{r global, include=FALSE}
 library(shiny)
 library(flexdashboard)
 library(tidyverse)
@@ -160,14 +158,18 @@ __Positive test rate__ is one of the frequently quoted metric regarding COVID tr
 
 Application author: [Micaela Chan](https://micaelachan.com)
 
+<font size="-3">
+<p>This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see here.</p>
+<p>This website is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License.</p>
+</font>
 
 
-COVID-19 Texas County Testing Trend
+County Trend
 =======================================================================
 
 Row 
 -----------------------------------------------------------------------
-### County-level New COVID Positive Test-Rate Over Time
+### County-level COVID Positive Test Rate Over Time
 
 ```{r, fig.width=14, fig.height=4}
 
@@ -242,7 +244,7 @@ g3 <- df %>%
     scale_x_date(name = 'Date', date_breaks = '2 days', date_labels = '%m-%d', 
                  limits = c(as.Date("2020-04-22", "%Y-%m-%d"), as.Date(df$Date[nrow(df)+1],"%Y-%m-%d"))) +
     ylab("New Test Per Day\n(7-day average)") +
-    ggtitle(label = "New Case/Tests Per Day Over Time (7-day average)", 
+    ggtitle(label = "New Tests Per Day Over Time (7-day average)", 
             subtitle = sprintf("%s County", input$county_name)) +
     theme(axis.text.x = element_text(angle = 45, hjust = 1),
           plot.subtitle = element_text(size=14, color = "grey20", face = "bold"))
