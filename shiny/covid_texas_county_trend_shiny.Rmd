@@ -98,6 +98,9 @@ for(cc in 1:length(counties)){
     df$New.Test.Reported[i] <- df$Total.Test.Performed[i] - df$Total.Test.Performed[i-1]
   }
   
+  df$New.Case.Reported[df$New.Case.Reported < 0 ] <- NA
+  df$New.Test.Reported[df$New.Test.Reported < 0 ] <- NA  
+  
   ## Smooth the per-day data over 7 days
   df$New.Case.Reported_7davg <- NA
   df$New.Test.Reported_7davg <- NA
@@ -186,8 +189,7 @@ __Original data__ is available from [Texas DSHS data](https://dshs.texas.gov/cor
 <br><br>
 Author: [Micaela Chan](https://micaelachan.com)
 
-<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png" /></a> | 
-<a rel="license" href="https://www.gnu.org/licenses/gpl-3.0.html"><img alt="AGPLv3" style="border-width:0" src="https://www.gnu.org/graphics/agplv3-88x31.png" /></a>
+<a rel="license" href="https://www.gnu.org/licenses/agpl-3.0.en.html"><img alt="AGPLv3" style="border-width:0" src="https://www.gnu.org/graphics/agplv3-88x31.png" /></a>
 
 
 County Trend
@@ -201,7 +203,7 @@ Row
 renderPlot(expr = {
 df <- df_list[[input$county_name]]
 
-most_recent_ptr <- sprintf("%s Positive Rate: %.1f%%", format(as.Date(df$Date[nrow(df)]), "%B %d, %Y"), df$Positive.Rate.Per.Day_7davg[nrow(df)])
+most_recent_ptr <- sprintf("Most Recent Positive Rate: %.1f%%", tail(df$Positive.Rate.Per.Day_7davg[!is.na(df$Positive.Rate.Per.Day_7davg)], 1))
 
   g1 <- df %>%
     ggplot(aes(x=Date, y=Positive.Rate.Per.Day_7davg)) +
