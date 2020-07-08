@@ -224,9 +224,10 @@ g2 <- df %>%
   scale_y_continuous(labels = function(x) paste0(x, "%")) +
   ylab("Positive Rate Per Day(%)\n(New Case/New Test Per Day)") +
   ggtitle("Est. Positive Rate Per Day in Dallas over Time (7-day average)") +
+  theme_mobile +
   theme(axis.text.x = element_text(angle = 45, hjust = 1),
-        legend.position = "none") +
-  theme_mobile
+        legend.position = "none")
+
 
 g1/g2
 
