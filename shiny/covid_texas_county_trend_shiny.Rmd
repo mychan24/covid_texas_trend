@@ -1,5 +1,5 @@
 ---
-title: "Texas County Trend Positive Test Rate Over Time"
+title: "Texas County COVID Positive Test Rate Trend"
 output: 
   flexdashboard::flex_dashboard:
     orientation: rows
