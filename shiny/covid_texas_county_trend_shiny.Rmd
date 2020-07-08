@@ -25,6 +25,7 @@ library(flexdashboard)
 library(tidyverse)
 library(patchwork)
 library(readxl)
+library(plotly)
 
 ### Set Theme for ggplot ###
 theme_set(theme_bw() +
@@ -94,8 +95,14 @@ for(cc in 1:length(counties)){
     df$New.Test.Reported_7davg[i] <- mean(df$New.Test.Reported[(i-3):(i+3)], na.rm=T)
   }
   
+  df$New.Case.Reported_7davg[df$New.Case.Reported_7davg < 0] <- NA # remove < 0 Test per day (due mis-reporting)
+  df$New.Test.Reported_7davg[df$New.Test.Reported_7davg < 0] <- NA # remove < 0 Test per day (due mis-reporting)
+  
   df$Positive.Rate.Per.Day <- df$New.Case.Reported/df$New.Test.Reported *100
   df$Positive.Rate.Per.Day_7davg <- df$New.Case.Reported_7davg/df$New.Test.Reported_7davg *100
+  
+  df$Positive.Rate.Per.Day_7davg[df$Positive.Rate.Per.Day_7davg > 50] <- NA # remove error due to Tests reported
+
   
   ## Label a positive rate data point as levels
   df$Positive.Rate.Level <- NA
@@ -149,16 +156,19 @@ df_texas$Positive.Rate.Level <- factor(df_texas$Positive.Rate.Level, levels=c("L
 Sidebar {.sidebar}
 ======================================================================
 
+Select a __County__ to see the trend of new COVID-19 tests and positive test rate over time. Only counties with more than 3000 total COVID tests are available. 
+
 ```{r sidebar}
 # Define inputs
 selectInput('county_name', label = 'Select a county:', choices = counties, selected = "Dallas")
 
 ```
 
-Select a __County__ to see the trend of new COVID-19 tests and positive test rate over time. Only counties with more than 3000 total COVID tests are available. 
-
 __Positive test rate__ is one of the frequently quoted metric regarding COVID trend. Most websites/reports have available state-level  data. This dashboard makes available county-level data for counties with > 3000 COVID tests performed to date. 
 
+__Missing data__ is present in the raw data at times, where no 'additional' tests were reported for a day. Those data-points were removed from the dashboard (no estimated positive test rate).
+
+<br><br>
 Application author: [Micaela Chan](https://micaelachan.com)
 
 <font size="-3">
@@ -175,29 +185,32 @@ Row
 ### County-level COVID Positive Test Rate Over Time
 
 ```{r fig_rate, fig.width=14, fig.height=4}
-
-renderPlot({
+renderPlot(expr = {
 df <- df_list[[input$county_name]]
-    
+
+most_recent_ptr <- sprintf("%s Positive Rate: %.f%%", format(as.Date(df$Date[nrow(df)]), "%B %d, %Y"), df$Positive.Rate.Per.Day_7davg[nrow(df)])
+
   g1 <- df %>%
     ggplot(aes(x=Date, y=Positive.Rate.Per.Day_7davg)) +
     geom_point(aes(color=Positive.Rate.Level)) +
     # Re-open vertical lines
-    geom_vline(xintercept = as.Date("2020-04-30", "%Y-%m-%d"), color="firebrick", linetype="dashed", alpha=0.8) +
-    annotate(geom = "text", x = as.Date("2020-04-28", "%Y-%m-%d"), color="firebrick",  
+    geom_vline(xintercept = as.Date("2020-04-30"), color="firebrick", linetype="dashed", alpha=0.8) +
+    annotate(geom = "text", x = as.Date("2020-04-28"), color="firebrick",  
              y = 28, label = "Re-open") +
     # Zone levels horizontal lines
     geom_hline(yintercept = 3, color="grey", linetype="dashed") +
     geom_hline(yintercept = 10, color="grey", linetype="dashed") +
     geom_hline(yintercept = 20, color="grey", linetype="dashed") +
-    annotate(geom = "text", x = as.Date("2020-04-22", "%Y-%m-%d"), y = 1, label = "Low", color="darkgreen") +
-    annotate(geom = "text", x = as.Date("2020-04-23", "%Y-%m-%d"), y = 6, label = "Medium", color="orange") +
-    annotate(geom = "text", x = as.Date("2020-04-22", "%Y-%m-%d"), y = 15, label = "High", color="#bb5516") +
-    annotate(geom = "text", x = as.Date("2020-04-22", "%Y-%m-%d"), y = 25, label = "Critical", color="red") +
+    annotate(geom = "text", x = as.Date("2020-04-22"), y = 1, label = "Low", color="darkgreen") +
+    annotate(geom = "text", x = as.Date("2020-04-23"), y = 6, label = "Medium", color="orange") +
+    annotate(geom = "text", x = as.Date("2020-04-22"), y = 15, label = "High", color="#bb5516") +
+    annotate(geom = "text", x = as.Date("2020-04-22"), y = 25, label = "Critical", color="red") +
+    # text for ptr
+    annotate(geom = "text", x= as.Date(df$Date[nrow(df)-8]), y=30, label=most_recent_ptr, color="grey20") + 
     # plot settings
     scale_color_manual(values = c("Low" = "darkgreen", "Medium" = "orange", "High" = "#bb5516", "Critical" = "red")) +
     scale_x_date(name = 'Date', date_breaks = '2 days', date_labels = '%m-%d', 
-                 limits = c(as.Date("2020-04-22", "%Y-%m-%d"), as.Date(df$Date[nrow(df)+1],"%Y-%m-%d"))) +
+                 limits = c(as.Date("2020-04-22"), as.Date(df$Date[nrow(df)+1]))) +
     scale_y_continuous(labels = function(x) paste0(x, "%")) +
     ylab("Positive Rate Per Day(%)\n(New Case/New Test Per Day)") +
     ggtitle(label = "Est. Positive Rate Per Day Over Time (7-day average)",
@@ -205,9 +218,9 @@ df <- df_list[[input$county_name]]
     theme(axis.text.x = element_text(angle = 45, hjust = 1),
           plot.subtitle = element_text(size=14, color = "grey20", face = "bold"), 
           legend.position = "none") 
-  g1
+  
+  g1 
 })
-
 ```
 
 
