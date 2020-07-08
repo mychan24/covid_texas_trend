@@ -168,7 +168,7 @@ __Positive test rate__ is one of the frequently quoted metric regarding COVID tr
 
 __Missing data__ is present in the raw data at times, where no 'additional' cases/tests were reported for a day. Those data-points were removed from the dashboard.
 
-
+__Download data:__ [Texas DSHS data](https://dshs.texas.gov/coronavirus/additionaldata/)
 
 <br><br>
 Application author: [Micaela Chan](https://micaelachan.com)
