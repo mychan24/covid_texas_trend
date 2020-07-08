@@ -40,10 +40,10 @@ theme_mobile <- theme_bw() +
 
 # --- Download data from dshs.texas.gov --- #
 
-# download.file(url = "https://dshs.texas.gov/coronavirus/TexasCOVID19DailyCountyCaseCountData.xlsx", destfile = "../data/TexasCOVID19DailyCountyCaseCountData.xlsx", mode="wb")
-# 
-# download.file(url = "https://dshs.texas.gov/coronavirus/TexasCOVID-19CumulativeTestsOverTimebyCounty.xlsx",
-#               destfile = "../data/COVID-19CumulativeTestTotalsbyCounty.xlsx", mode="wb")
+download.file(url = "https://dshs.texas.gov/coronavirus/TexasCOVID19DailyCountyCaseCountData.xlsx", destfile = "../data/TexasCOVID19DailyCountyCaseCountData.xlsx", mode="wb")
+
+download.file(url = "https://dshs.texas.gov/coronavirus/TexasCOVID-19CumulativeTestsOverTimebyCounty.xlsx",
+              destfile = "../data/COVID-19CumulativeTestTotalsbyCounty.xlsx", mode="wb")
 
 
 # --- Load Case and Test Data --- #
