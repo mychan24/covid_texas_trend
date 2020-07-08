@@ -90,9 +90,9 @@ for(cc in 1:length(counties)){
   ## Smooth the per-day data over 7 days
   df$New.Case.Reported_7davg <- NA
   df$New.Test.Reported_7davg <- NA
-  for(i in 3:nrow(df)){
-    df$New.Case.Reported_7davg[i] <- mean(df$New.Case.Reported[(i-3):(i+3)], na.rm=T)
-    df$New.Test.Reported_7davg[i] <- mean(df$New.Test.Reported[(i-3):(i+3)], na.rm=T)
+  for(i in 7:nrow(df)){
+    df$New.Case.Reported_7davg[i] <- mean(df$New.Case.Reported[(i-6):i], na.rm=T)
+    df$New.Test.Reported_7davg[i] <- mean(df$New.Test.Reported[(i-6):i], na.rm=T)
   }
   
   df$New.Case.Reported_7davg[df$New.Case.Reported_7davg < 0] <- NA # remove < 0 Test per day (due mis-reporting)
@@ -117,7 +117,7 @@ for(cc in 1:length(counties)){
 }
 
 
-# --- Texas state-level data cleaning --- #
+# --- Texas data --- #
 df_texas <- data.frame(Date = names(case)[(which(names(case)=="04-21")+1):ncol(case)],
                        Total.Test.Performed = as.numeric(t[t$County=="TOTAL",2:ncol(t)]),
                        Total.Cases = as.numeric(case[which(case$`County Name`=="Total"), (which(names(case)=="04-21")+1):ncol(case)-1]))
@@ -135,9 +135,9 @@ for(i in 2:nrow(df_texas)){
 ## Smooth the per-day data over 5 days
 df_texas$New.Case.Reported_7davg <- NA
 df_texas$New.Test.Reported_7davg <- NA
-for(i in 3:nrow(df_texas)){
-  df_texas$New.Case.Reported_7davg[i] <- mean(df_texas$New.Case.Reported[(i-3):(i+3)], na.rm=T)
-  df_texas$New.Test.Reported_7davg[i] <- mean(df_texas$New.Test.Reported[(i-3):(i+3)], na.rm=T)
+for(i in 7:nrow(df_texas)){
+  df_texas$New.Case.Reported_7davg[i] <- mean(df_texas$New.Case.Reported[(i-6):i], na.rm=T)
+  df_texas$New.Test.Reported_7davg[i] <- mean(df_texas$New.Test.Reported[(i-6):i], na.rm=T)
 }
 
 df_texas$Positive.Rate.Per.Day <- df_texas$New.Case.Reported/df_texas$New.Test.Reported *100
@@ -156,13 +156,15 @@ df_texas$Positive.Rate.Level <- factor(df_texas$Positive.Rate.Level, levels=c("L
 Sidebar {.sidebar}
 ======================================================================
 
-<font size="-2"> __Disclaimer:__ These data were collected different (i) geographical locations, (ii) reported by different entities, and (iii) based only on 'individuals that got tested'. The trends should be interpreted or compared with great caution. These trends are only as accurate as the underlying "reported" cases/tests.</font>
+<font size="-2"><p> __Disclaimer:__ These data were collected different (i) geographical locations, (ii) reported by different entities, and (iii) based only on 'individuals that got tested'. The trends should be interpreted or compared with great caution. These trends are only as accurate as the underlying "reported" cases/tests.</p></font>
 
 ```{r sidebar}
 # Define inputs
 selectInput('county_name', label = 'Select a county:', choices = counties, selected = "Dallas")
 
 ```
+
+Select __State Trend tab__ to see state-level trend data.
 
 __Positive test rate__ is one of the frequently quoted metric regarding COVID trend. Most websites/reports have available state-level  data. This dashboard makes available county-level data for counties with > 3000 COVID tests performed to date. 
 
@@ -190,7 +192,7 @@ Row
 renderPlot(expr = {
 df <- df_list[[input$county_name]]
 
-most_recent_ptr <- sprintf("%s Positive Rate: %.f%%", format(as.Date(df$Date[nrow(df)]), "%B %d, %Y"), df$Positive.Rate.Per.Day_7davg[nrow(df)])
+most_recent_ptr <- sprintf("%s Positive Rate: %.1f%%", format(as.Date(df$Date[nrow(df)]), "%B %d, %Y"), df$Positive.Rate.Per.Day_7davg[nrow(df)])
 
   g1 <- df %>%
     ggplot(aes(x=Date, y=Positive.Rate.Per.Day_7davg)) +
@@ -208,7 +210,7 @@ most_recent_ptr <- sprintf("%s Positive Rate: %.f%%", format(as.Date(df$Date[nro
     annotate(geom = "text", x = as.Date("2020-04-22"), y = 15, label = "High", color="#bb5516") +
     annotate(geom = "text", x = as.Date("2020-04-22"), y = 25, label = "Critical", color="red") +
     # text for ptr
-    annotate(geom = "text", x= as.Date(df$Date[nrow(df)-8]), y=30, label=most_recent_ptr, color="grey20", size=4.5) + 
+    annotate(geom = "text", x= as.Date(df$Date[nrow(df)-8]), y=max(df$Positive.Rate.Per.Day_7davg,na.rm=T)+2, label=most_recent_ptr, color="grey20", size=4.5) + 
     # plot settings
     scale_color_manual(values = c("Low" = "darkgreen", "Medium" = "orange", "High" = "#bb5516", "Critical" = "red")) +
     scale_x_date(name = 'Date', date_breaks = '2 days', date_labels = '%m-%d', 
@@ -272,4 +274,91 @@ g2/g3
 
 ```
 
+Texas State Trend
+=======================================================================
 
+Row 
+-----------------------------------------------------------------------
+### Texas State-level COVID Positive Test Rate Over Time
+
+
+```{r fig_texas_rate, fig.width=14, fig.height=4}
+renderPlot(expr = {
+
+most_recent_ptr <- sprintf("%s Positive Rate: %.1f%%", format(as.Date(df_texas$Date[nrow(df_texas)]), "%B %d, %Y"), df_texas$Positive.Rate.Per.Day_7davg[nrow(df_texas)])
+
+  g4 <- df_texas %>%
+    ggplot(aes(x=Date, y=Positive.Rate.Per.Day_7davg)) +
+    geom_point(aes(color=Positive.Rate.Level)) +
+    # Re-open vertical lines
+    geom_vline(xintercept = as.Date("2020-04-30"), color="firebrick", linetype="dashed", alpha=0.8) +
+    annotate(geom = "text", x = as.Date("2020-04-28"), color="firebrick",  
+             y = 28, label = "Re-open") +
+    # Zone levels horizontal lines
+    geom_hline(yintercept = 3, color="grey", linetype="dashed") +
+    geom_hline(yintercept = 10, color="grey", linetype="dashed") +
+    geom_hline(yintercept = 20, color="grey", linetype="dashed") +
+    annotate(geom = "text", x = as.Date("2020-04-22"), y = 1, label = "Low", color="darkgreen") +
+    annotate(geom = "text", x = as.Date("2020-04-23"), y = 6, label = "Medium", color="orange") +
+    annotate(geom = "text", x = as.Date("2020-04-22"), y = 15, label = "High", color="#bb5516") +
+    annotate(geom = "text", x = as.Date("2020-04-22"), y = 25, label = "Critical", color="red") +
+    # text for ptr
+    annotate(geom = "text", x= as.Date(df_texas$Date[nrow(df)-8]), y=30, label=most_recent_ptr, color="grey20", size=4.5) + 
+    # plot settings
+    scale_color_manual(values = c("Low" = "darkgreen", "Medium" = "orange", "High" = "#bb5516", "Critical" = "red")) +
+    scale_x_date(name = 'Date', date_breaks = '2 days', date_labels = '%m-%d', 
+                 limits = c(as.Date("2020-04-22"), as.Date(df_texas$Date[nrow(df)+1]))) +
+    scale_y_continuous(labels = function(x) paste0(x, "%")) +
+    ylab("Positive Rate Per Day(%)\n(New Case/New Test Per Day)") +
+    ggtitle(label = "Est. Positive Rate Per Day Over Time (7-day average)") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1),
+          plot.subtitle = element_text(size=14, color = "grey20", face = "bold"), 
+          legend.position = "none") 
+  
+  g4
+})
+```
+
+
+Row
+-----------------------------------------------------------------------
+### Texas State-level New COVID Confirmed Cases & Tests Over Time
+
+```{r fig_texas_casetest, fig.width=14, fig.height=6}
+
+renderPlot({
+  
+g5 <- df_texas %>%
+    ggplot(aes(x=Date, y=New.Case.Reported_7davg)) +
+    geom_bar(stat = "identity", fill="#cc5500") +
+    # Re-open vertical lines
+    geom_vline(xintercept = as.Date("2020-04-30", "%Y-%m-%d"), color="firebrick", linetype="dashed", alpha=0.8) +
+    annotate(geom = "text", x = as.Date("2020-04-28", "%Y-%m-%d"),color="firebrick",  
+             y = max(df_texas$New.Case.Reported_7davg,na.rm=T)-max(df_texas$New.Case.Reported_7davg,na.rm=T)/4, label = "Re-open") +
+    # plot settings
+    scale_x_date(name = 'Date', date_breaks = '2 days', date_labels = '%m-%d', 
+                 limits = c(as.Date("2020-04-22", "%Y-%m-%d"), as.Date(df_texas$Date[nrow(df)+1],"%Y-%m-%d"))) +
+    ylab("New Cases Per Day\n(7-day average)") +
+    ggtitle(label = "New Cases Per Day Over Time (7-day average)") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1),
+          plot.subtitle = element_text(size=14, color = "grey20", face = "bold"))
+
+g6 <- df_texas %>%
+    ggplot(aes(x=Date, y=New.Test.Reported_7davg)) +
+    geom_bar(stat = "identity", fill="#009a9a") +
+    # Re-open vertical lines
+    geom_vline(xintercept = as.Date("2020-04-30", "%Y-%m-%d"), color="firebrick", linetype="dashed", alpha=0.8) +
+    annotate(geom = "text", x = as.Date("2020-04-28", "%Y-%m-%d"),color="firebrick",  
+             y = max(df_texas$New.Test.Reported_7davg,na.rm=T)-max(df_texas$New.Test.Reported_7davg,na.rm=T)/4, label = "Re-open") +
+    # plot settings
+    scale_x_date(name = 'Date', date_breaks = '2 days', date_labels = '%m-%d', 
+                 limits = c(as.Date("2020-04-22", "%Y-%m-%d"), as.Date(df_texas$Date[nrow(df)+1],"%Y-%m-%d"))) +
+    ylab("New Test Per Day\n(7-day average)") +
+    ggtitle(label = "New Tests Per Day Over Time (7-day average)") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1),
+          plot.subtitle = element_text(size=14, color = "grey20", face = "bold"))
+  
+g5/g6
+})
+
+```
