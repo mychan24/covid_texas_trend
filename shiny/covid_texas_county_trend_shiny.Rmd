@@ -14,6 +14,17 @@ runtime: shiny
   background-color:#009a9a;
   border-color:black;
 }
+.navbar-inverse .navbar-nav > li > a:hover,
+.navbar-inverse .navbar-nav > li > a:focus {
+    background-color:#004e4e;
+    color: white;
+}
+.navbar-inverse .navbar-nav > .active > a,
+.navbar-inverse .navbar-nav > .active > a:hover,
+.navbar-inverse .navbar-nav > .active > a:focus {
+  color: white;
+  background-color:#004e4e;
+}
 .navbar-brand {
 color:white!important;
 }
@@ -156,7 +167,7 @@ df_texas$Positive.Rate.Level <- factor(df_texas$Positive.Rate.Level, levels=c("L
 Sidebar {.sidebar}
 ======================================================================
 
-<font size="-2"><p> __Disclaimer:__ These data were collected different (i) geographical locations, (ii) reported by different entities, and (iii) based only on 'individuals that got tested'. The trends should be interpreted or compared with great caution. These trends are only as accurate as the underlying "reported" cases/tests.</p></font>
+<font size="-2"><p> __Disclaimer:__ These data were (i) collected different geographical locations, (ii) reported by different entities, and (iii) based only on __'individuals that got tested'__. These trends are only as accurate as the underlying "reported" cases/tests, and should be interpreted or compared with great caution.</p></font>
 
 ```{r sidebar}
 # Define inputs
@@ -170,14 +181,14 @@ __Positive test rate__ is one of the frequently quoted metric regarding COVID tr
 
 __Missing data__ is present in the raw data at times, where no 'additional' cases/tests were reported for a day. Those data-points were removed from the dashboard.
 
-__Download data:__ [Texas DSHS data](https://dshs.texas.gov/coronavirus/additionaldata/)
+__Original data__ is available from [Texas DSHS data](https://dshs.texas.gov/coronavirus/additionaldata/).
 
 <br><br>
-Application author: [Micaela Chan](https://micaelachan.com)
+Author: [Micaela Chan](https://micaelachan.com)
 
-<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png" /></a>
+<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png" /></a> | 
+<a rel="license" href="https://www.gnu.org/licenses/gpl-3.0.html"><img alt="AGPLv3" style="border-width:0" src="https://www.gnu.org/graphics/agplv3-88x31.png" /></a>
 
-<a rel="license" href="https://www.gnu.org/licenses/gpl-3.0.html"><img alt="GPLv3" style="border-width:0" src="https://www.gnu.org/graphics/gplv3-with-text-84x42.png" /></a>
 
 County Trend
 =======================================================================
