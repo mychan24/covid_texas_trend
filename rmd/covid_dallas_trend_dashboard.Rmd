@@ -35,7 +35,7 @@ theme_set(theme_bw() +
 theme_mobile <- theme_bw() +
               theme(strip.text = element_text(size=8, face="plain"),
               axis.title = element_text(size=8, face=("plain")),
-              plot.title = element_text(size=12, face=("plain")))
+              plot.title = element_text(size=10, face=("plain")))
 
 # --- Download data from dshs.texas.gov --- #
 
@@ -198,8 +198,9 @@ g1 <- df %>%
                limits = c(as.Date("2020-04-22", "%Y-%m-%d"), as.Date(df$Date[nrow(df)+1],"%Y-%m-%d"))) +
   ylab("New Test Per Day\n(7-day average)") +
   ggtitle("New Tests Per Day in Dallas over Time (7-day average)") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  theme_mobile
+  theme_mobile +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
   
 
 g2 <- df %>%
