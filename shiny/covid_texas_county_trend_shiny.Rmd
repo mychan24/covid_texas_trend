@@ -156,7 +156,7 @@ df_texas$Positive.Rate.Level <- factor(df_texas$Positive.Rate.Level, levels=c("L
 Sidebar {.sidebar}
 ======================================================================
 
-Select a __County__ to see the trend of new COVID-19 tests and positive test rate over time. Only counties with more than 3000 total COVID tests are available. 
+<font size="-2"> __Disclaimer:__ These data were collected different (i) geographical locations, (ii) reported by different entities, and (iii) based only on 'individuals that got tested'. The trends should be interpreted or compared with great caution. These trends are only as accurate as the underlying "reported" cases/tests.</font>
 
 ```{r sidebar}
 # Define inputs
@@ -166,7 +166,9 @@ selectInput('county_name', label = 'Select a county:', choices = counties, selec
 
 __Positive test rate__ is one of the frequently quoted metric regarding COVID trend. Most websites/reports have available state-level  data. This dashboard makes available county-level data for counties with > 3000 COVID tests performed to date. 
 
-__Missing data__ is present in the raw data at times, where no 'additional' tests were reported for a day. Those data-points were removed from the dashboard (no estimated positive test rate).
+__Missing data__ is present in the raw data at times, where no 'additional' cases/tests were reported for a day. Those data-points were removed from the dashboard.
+
+
 
 <br><br>
 Application author: [Micaela Chan](https://micaelachan.com)
