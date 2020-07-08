@@ -206,7 +206,7 @@ most_recent_ptr <- sprintf("%s Positive Rate: %.f%%", format(as.Date(df$Date[nro
     annotate(geom = "text", x = as.Date("2020-04-22"), y = 15, label = "High", color="#bb5516") +
     annotate(geom = "text", x = as.Date("2020-04-22"), y = 25, label = "Critical", color="red") +
     # text for ptr
-    annotate(geom = "text", x= as.Date(df$Date[nrow(df)-8]), y=30, label=most_recent_ptr, color="grey20") + 
+    annotate(geom = "text", x= as.Date(df$Date[nrow(df)-8]), y=30, label=most_recent_ptr, color="grey20", size=4.5) + 
     # plot settings
     scale_color_manual(values = c("Low" = "darkgreen", "Medium" = "orange", "High" = "#bb5516", "Critical" = "red")) +
     scale_x_date(name = 'Date', date_breaks = '2 days', date_labels = '%m-%d', 
