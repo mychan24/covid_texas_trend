@@ -36,7 +36,7 @@ library(flexdashboard)
 library(tidyverse)
 library(patchwork)
 library(readxl)
-library(plotly)
+# library(plotly)
 
 ### Set Theme for ggplot ###
 theme_set(theme_bw() +
@@ -71,8 +71,8 @@ names(case)[3:ncol(case)] <- gsub(" ", "", names(case)[3:ncol(case)])
 t <- read_excel(path = "./COVID-19CumulativeTestTotalsbyCounty.xlsx",
                 skip =1, n_max = 258)
 
-file.remove("./TexasCOVID19DailyCountyCaseCountData.xlsx")
-file.remove("./COVID-19CumulativeTestTotalsbyCounty.xlsx")
+# file.remove("./TexasCOVID19DailyCountyCaseCountData.xlsx")
+# file.remove("./COVID-19CumulativeTestTotalsbyCounty.xlsx")
 
 names(t)[2:ncol(t)] <- sub("Tests Through ", "", names(t)[2:ncol(t)])
 # --- Texas county data cleaning and calculating positive test rate (ptr) --- #
