@@ -33,7 +33,8 @@ color:white!important;
 ```{r global, include=FALSE}
 library(shiny)
 library(flexdashboard)
-library(tidyverse)
+library(ggplot2)
+library(dplyr)
 library(patchwork)
 library(readxl)
 # library(plotly)
