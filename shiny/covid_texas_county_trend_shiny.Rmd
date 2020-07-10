@@ -54,14 +54,14 @@ theme_mobile <- theme_bw() +
 # --- Download data from dshs.texas.gov --- #
 
 
-try(download.file(url = "https://dshs.texas.gov/coronavirus/TexasCOVID19DailyCountyCaseCountData.xlsx", destfile = "./TexasCOVID19DailyCountyCaseCountData.xlsx", mode="wb"), silent = TRUE)
+try(download.file(url = "https://dshs.texas.gov/coronavirus/TexasCOVID19DailyCountyCaseCountData.xlsx", destfile = "~/TexasCOVID19DailyCountyCaseCountData.xlsx", mode="wb"), silent = TRUE)
 
 try(download.file(url = "https://dshs.texas.gov/coronavirus/TexasCOVID-19CumulativeTestsOverTimebyCounty.xlsx",
-              destfile = "./COVID-19CumulativeTestTotalsbyCounty.xlsx", mode="wb"), silent = TRUE)
+              destfile = "~/COVID-19CumulativeTestTotalsbyCounty.xlsx", mode="wb"), silent = TRUE)
 
 
 # --- Load Case and Test Data --- #
-case <- read_excel(path = "./TexasCOVID19DailyCountyCaseCountData.xlsx",
+case <- read_excel(path = "~/TexasCOVID19DailyCountyCaseCountData.xlsx",
                    skip =2, n_max = 258)
 
 ## remove extra spaces
@@ -69,8 +69,9 @@ names(case)[3:ncol(case)] <- gsub("\r", "", names(case)[3:ncol(case)])
 names(case)[3:ncol(case)] <- gsub("\n", "", names(case)[3:ncol(case)])
 names(case)[3:ncol(case)] <- gsub("Cases", "", names(case)[3:ncol(case)])
 names(case)[3:ncol(case)] <- gsub(" ", "", names(case)[3:ncol(case)])
+case$`County Name`[which(case$`County Name`=="Total")] <- "TOTAL"
 
-t <- read_excel(path = "./COVID-19CumulativeTestTotalsbyCounty.xlsx",
+t <- read_excel(path = "~/COVID-19CumulativeTestTotalsbyCounty.xlsx",
                 skip =1, n_max = 258)
 
 # file.remove("./TexasCOVID19DailyCountyCaseCountData.xlsx")
@@ -79,7 +80,7 @@ t <- read_excel(path = "./COVID-19CumulativeTestTotalsbyCounty.xlsx",
 names(t)[2:ncol(t)] <- sub("Tests Through ", "", names(t)[2:ncol(t)])
 # --- Texas county data cleaning and calculating positive test rate (ptr) --- #
 counties <- t$County[t[,ncol(t)]>3000]
-counties <- counties[!is.element(counties, c("Unknown", "Pending Assignments", "TOTAL"))]
+counties <- counties[!is.element(counties, c("Unknown", "Pending Assignments"))]
 
 df_list <- list()
 for(cc in 1:length(counties)){
@@ -132,41 +133,9 @@ for(cc in 1:length(counties)){
   names(df_list)[[cc]] <- counties[[cc]]
 }
 
+df_texas <- df_list[["TOTAL"]]
 
-# --- Texas data --- #
-df_texas <- data.frame(Date = names(case)[(which(names(case)=="04-21")+1):ncol(case)],
-                       Total.Test.Performed = as.numeric(t[t$County=="TOTAL",2:ncol(t)]),
-                       Total.Cases = as.numeric(case[which(case$`County Name`=="Total"), (which(names(case)=="04-21")+1):ncol(case)-1]))
-
-df_texas$Positive.Rate <- df_texas$Total.Cases/df_texas$Total.Test.Performed*100
-df_texas$Date <- as.Date(df_texas$Date, "%m-%d")
-
-df_texas$New.Case.Reported <- NA
-df_texas$New.Test.Reported <- NA
-for(i in 2:nrow(df_texas)){
-  df_texas$New.Case.Reported[i] <- df_texas$Total.Cases[i] - df_texas$Total.Cases[i-1]
-  df_texas$New.Test.Reported[i] <- df_texas$Total.Test.Performed[i] - df_texas$Total.Test.Performed[i-1]
-}
-
-## Smooth the per-day data over 5 days
-df_texas$New.Case.Reported_7davg <- NA
-df_texas$New.Test.Reported_7davg <- NA
-for(i in 7:nrow(df_texas)){
-  df_texas$New.Case.Reported_7davg[i] <- mean(df_texas$New.Case.Reported[(i-6):i], na.rm=T)
-  df_texas$New.Test.Reported_7davg[i] <- mean(df_texas$New.Test.Reported[(i-6):i], na.rm=T)
-}
-
-df_texas$Positive.Rate.Per.Day <- df_texas$New.Case.Reported/df_texas$New.Test.Reported *100
-df_texas$Positive.Rate.Per.Day_7davg <- df_texas$New.Case.Reported_7davg/df_texas$New.Test.Reported_7davg *100
-
-## Label a positive rate data point as levels
-df_texas$Positive.Rate.Level <- NA
-df_texas$Positive.Rate.Level[df_texas$Positive.Rate.Per.Day_7davg<3] <- "Low"
-df_texas$Positive.Rate.Level[df_texas$Positive.Rate.Per.Day_7davg>=3 & df_texas$Positive.Rate.Per.Day_7davg < 10] <- "Medium"
-df_texas$Positive.Rate.Level[df_texas$Positive.Rate.Per.Day_7davg>=10 & df_texas$Positive.Rate.Per.Day_7davg < 20] <- "High"
-df_texas$Positive.Rate.Level[df_texas$Positive.Rate.Per.Day_7davg>=20] <- "Critical"
-df_texas$Positive.Rate.Level <- factor(df_texas$Positive.Rate.Level, levels=c("Low","Medium","High","Critical"))
-
+df_list[["TOTAL"]] <- NULL
 ```
 
 Sidebar {.sidebar}
@@ -189,7 +158,7 @@ __Missing data__ is present in the raw data at times, where no 'additional' case
 __Original data__ is available from [Texas DSHS data](https://dshs.texas.gov/coronavirus/additionaldata/).
 
 <br><br>
-Author: [Micaela Chan](https://micaelachan.com)
+Author: [Dr. Micaela Chan](https://micaelachan.com)
 
 <a rel="license" href="https://www.gnu.org/licenses/agpl-3.0.en.html"><img alt="AGPLv3" style="border-width:0" src="https://www.gnu.org/graphics/agplv3-88x31.png" /></a>
 
