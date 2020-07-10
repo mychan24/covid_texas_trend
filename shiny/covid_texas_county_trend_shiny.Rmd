@@ -136,6 +136,7 @@ for(cc in 1:length(counties)){
 df_texas <- df_list[["TOTAL"]]
 
 df_list[["TOTAL"]] <- NULL
+counties <- counties[counties!="TOTAL"]
 ```
 
 Sidebar {.sidebar}
