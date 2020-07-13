@@ -137,6 +137,9 @@ df_texas <- df_list[["TOTAL"]]
 
 df_list[["TOTAL"]] <- NULL
 counties <- counties[counties!="TOTAL"]
+
+start_date <- as.Date("2020-04-22")
+end_date <- as.Date(df_texas$Date[nrow(df_texas)])
 ```
 
 Sidebar {.sidebar}
@@ -176,8 +179,6 @@ renderPlot(expr = {
 df <- df_list[[input$county_name]]
 
 most_recent_ptr <- sprintf("Most Recent Positive Rate: %.1f%%", tail(df$Positive.Rate.Per.Day_7davg[!is.na(df$Positive.Rate.Per.Day_7davg)], 1))
-start_date <- as.Date("2020-04-22")
-end_date <- as.Date(df$Date[nrow(df)])
 
 ptr_y = 29
 if(max(df$Positive.Rate.Per.Day_7davg,na.rm=T)>30){
@@ -237,12 +238,11 @@ g2 <- df %>%
     ggplot(aes(x=Date, y=New.Case.Reported_7davg)) +
     geom_bar(stat = "identity", fill="#cc5500") +
     # Re-open vertical lines
-    geom_vline(xintercept = as.Date("2020-04-30", "%Y-%m-%d"), color="firebrick", linetype="dashed", alpha=0.8) +
-    annotate(geom = "text", x = as.Date("2020-04-28", "%Y-%m-%d"),color="firebrick",  
+    geom_vline(xintercept = as.Date("2020-04-30"), color="firebrick", linetype="dashed", alpha=0.8) +
+    annotate(geom = "text", x = as.Date("2020-04-28"),color="firebrick",  
              y = max(df$New.Case.Reported_7davg,na.rm=T)-max(df$New.Case.Reported_7davg,na.rm=T)/4, label = "Re-open") +
     # plot settings
-    scale_x_date(name = 'Date', date_breaks = '2 days', date_labels = '%m-%d', expand = c(0,.5),
-                 limits = c(as.Date("2020-04-22", "%Y-%m-%d"), as.Date(df$Date[nrow(df)+1],"%Y-%m-%d"))) +
+    scale_x_date(name = 'Date', date_breaks = '2 days', date_labels = '%m-%d', expand = c(0,.5), limits = c(start_date, end_date)) +
     ylab("New Cases Per Day\n(7-day average)") +
     ggtitle(label = "New Cases Per Day Over Time (7-day average)", 
             subtitle = sprintf("%s County", input$county_name)) +
@@ -253,12 +253,11 @@ g3 <- df %>%
     ggplot(aes(x=Date, y=New.Test.Reported_7davg)) +
     geom_bar(stat = "identity", fill="#009a9a") +
     # Re-open vertical lines
-    geom_vline(xintercept = as.Date("2020-04-30", "%Y-%m-%d"), color="firebrick", linetype="dashed", alpha=0.8) +
-    annotate(geom = "text", x = as.Date("2020-04-28", "%Y-%m-%d"),color="firebrick",  
+    geom_vline(xintercept = as.Date("2020-04-30"), color="firebrick", linetype="dashed", alpha=0.8) +
+    annotate(geom = "text", x = as.Date("2020-04-28"), color="firebrick",  
              y = max(df$New.Test.Reported_7davg,na.rm=T)-max(df$New.Test.Reported_7davg,na.rm=T)/4, label = "Re-open") +
     # plot settings
-    scale_x_date(name = 'Date', date_breaks = '2 days', date_labels = '%m-%d', expand = c(0,.5),
-                 limits = c(as.Date("2020-04-22", "%Y-%m-%d"), as.Date(df$Date[nrow(df)+1],"%Y-%m-%d"))) +
+    scale_x_date(name = 'Date', date_breaks = '2 days', date_labels = '%m-%d', expand = c(0,.5), limits = c(start_date, end_date)) +
     ylab("New Test Per Day\n(7-day average)") +
     ggtitle(label = "New Tests Per Day Over Time (7-day average)", 
             subtitle = sprintf("%s County", input$county_name)) +
@@ -299,26 +298,21 @@ if(max(df_texas$Positive.Rate.Per.Day_7davg,na.rm=T)>30){
     geom_hline(yintercept = 3, color="grey", linetype="dashed") +
     geom_hline(yintercept = 10, color="grey", linetype="dashed") +
     geom_hline(yintercept = 20, color="grey", linetype="dashed") +
-    annotate(geom = "text", x = as.Date("2020-04-24"), y = 1, label = "Low", color="darkgreen", fontface="bold") + 
-    annotate(geom = "text", x = as.Date("2020-04-25"), y = 6, label = "Medium", color="orange", fontface="bold") + 
-    annotate(geom = "text", x = as.Date("2020-04-24"), y = 15, label = "High", color="#bb5516", fontface="bold") + 
-    annotate(geom = "text", x = as.Date("2020-04-25"), y = 25, label = "Critical", color="red", fontface="bold") + 
+    annotate(geom = "text", x = start_date+2, y = 1, label = "Low", color="darkgreen", fontface="bold") + 
+    annotate(geom = "text", x = start_date+3, y = 6, label = "Medium", color="orange", fontface="bold") + 
+    annotate(geom = "text", x = start_date+2, y = 15, label = "High", color="#bb5516", fontface="bold") + 
+    annotate(geom = "text", x = start_date+2, y = 25, label = "Critical", color="red", fontface="bold") + 
     # --- background color for levels --- # 
-    annotate(geom = "rect", xmin = as.Date("2020-04-22"), xmax =  as.Date(df$Date[nrow(df)]), ymin = -Inf, ymax = 3,
-             fill = "darkgreen", colour = NA, alpha = 0.1) +  
-    annotate(geom = "rect", xmin = as.Date("2020-04-22"), xmax =  as.Date(df$Date[nrow(df)]), ymin = 3, ymax = 10,
-             fill = "orange", colour = NA, alpha = 0.1) +  
-    annotate(geom = "rect", xmin = as.Date("2020-04-22"), xmax =  as.Date(df$Date[nrow(df)]), ymin = 10, ymax = 20,
-             fill = "#bb5516", colour = NA, alpha = 0.1) +  
-    annotate(geom = "rect", xmin = as.Date("2020-04-22"), xmax =  as.Date(df$Date[nrow(df)]), ymin = 20, ymax = Inf,
-             fill = "red", colour = NA, alpha = 0.1) +    
+    annotate(geom = "rect", xmin = start_date, xmax = end_date, ymin = -Inf, ymax = 3, fill = "darkgreen", alpha = 0.1) +  
+    annotate(geom = "rect", xmin = start_date, xmax = end_date, ymin = 3, ymax = 10, fill = "orange", alpha = 0.1) +  
+    annotate(geom = "rect", xmin = start_date, xmax = end_date, ymin = 10, ymax = 20, fill = "#bb5516", alpha = 0.1) +  
+    annotate(geom = "rect", xmin = start_date, xmax = end_date, ymin = 20, ymax = Inf, fill = "red", alpha = 0.1) +    
     # ------------------------------------ # 
     # text for ptr
-    annotate(geom = "text", x= as.Date(df$Date[nrow(df)-15]), y=ptr_y, label=most_recent_ptr, color="grey20", size=4.5, fontface="bold") + 
+    annotate(geom = "text", x= as.Date(df$Date[nrow(df_texas)-15]), y=ptr_y, label=most_recent_ptr, color="grey20", size=4.5, fontface="bold") + 
     # plot settings
     scale_color_manual(values = c("Low" = "darkgreen", "Medium" = "orange", "High" = "#bb5516", "Critical" = "red")) +
-    scale_x_date(name = 'Date', date_breaks = '2 days', date_labels = '%m-%d', expand = c(0,.5),
-                 limits = c(as.Date("2020-04-22"), as.Date(df$Date[nrow(df)]))) +
+    scale_x_date(name = 'Date', date_breaks = '2 days', date_labels = '%m-%d', expand = c(0,.5), limits = c(start_date, end_date)) +
     scale_y_continuous(labels = function(x) paste0(x, "%")) +
     ylab("Positive Rate Per Day(%)\n(New Case/New Test Per Day)") +
     ggtitle(label = "Est. Positive Rate Per Day Over Time (7-day average)") +
@@ -347,8 +341,7 @@ g5 <- df_texas %>%
     annotate(geom = "text", x = as.Date("2020-04-28", "%Y-%m-%d"),color="firebrick",  
              y = max(df_texas$New.Case.Reported_7davg,na.rm=T)-max(df_texas$New.Case.Reported_7davg,na.rm=T)/4, label = "Re-open") +
     # plot settings
-    scale_x_date(name = 'Date', date_breaks = '2 days', date_labels = '%m-%d', 
-                 limits = c(as.Date("2020-04-22", "%Y-%m-%d"), as.Date(df_texas$Date[nrow(df)+1],"%Y-%m-%d"))) +
+    scale_x_date(name = 'Date', date_breaks = '2 days', date_labels = '%m-%d', expand = c(0,.5), limits = c(start_date, end_date)) +
     ylab("New Cases Per Day\n(7-day average)") +
     ggtitle(label = "New Cases Per Day Over Time (7-day average)") +
     theme(axis.text.x = element_text(angle = 45, hjust = 1),
@@ -362,8 +355,7 @@ g6 <- df_texas %>%
     annotate(geom = "text", x = as.Date("2020-04-28", "%Y-%m-%d"),color="firebrick",  
              y = max(df_texas$New.Test.Reported_7davg,na.rm=T)-max(df_texas$New.Test.Reported_7davg,na.rm=T)/4, label = "Re-open") +
     # plot settings
-    scale_x_date(name = 'Date', date_breaks = '2 days', date_labels = '%m-%d', 
-                 limits = c(as.Date("2020-04-22", "%Y-%m-%d"), as.Date(df_texas$Date[nrow(df)+1],"%Y-%m-%d"))) +
+    scale_x_date(name = 'Date', date_breaks = '2 days', date_labels = '%m-%d', expand = c(0,.5), limits = c(start_date, end_date)) +
     ylab("New Test Per Day\n(7-day average)") +
     ggtitle(label = "New Tests Per Day Over Time (7-day average)") +
     theme(axis.text.x = element_text(angle = 45, hjust = 1),
