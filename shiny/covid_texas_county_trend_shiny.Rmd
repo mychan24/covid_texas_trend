@@ -37,6 +37,8 @@ library(ggplot2)
 library(dplyr)
 library(patchwork)
 library(readxl)
+library(directlabels)
+
 # library(plotly)
 
 ### Set Theme for ggplot ###
@@ -140,6 +142,8 @@ counties <- counties[counties!="TOTAL"]
 
 start_date <- as.Date("2020-04-22")
 end_date <- as.Date(df_texas$Date[nrow(df_texas)])
+
+most_recent_ptr_tx <- sprintf("Most Recent Positive Rate in Texas: %.1f%%", tail(df_texas$Positive.Rate.Per.Day_7davg[!is.na(df_texas$Positive.Rate.Per.Day_7davg)], 1))
 ```
 
 Sidebar {.sidebar}
@@ -178,7 +182,7 @@ Row
 renderPlot(expr = {
 df <- df_list[[input$county_name]]
 
-most_recent_ptr <- sprintf("Most Recent Positive Rate: %.1f%%", tail(df$Positive.Rate.Per.Day_7davg[!is.na(df$Positive.Rate.Per.Day_7davg)], 1))
+most_recent_ptr <- sprintf("Most Recent Positive Rate in %s County: %.1f%%", input$county_name, tail(df$Positive.Rate.Per.Day_7davg[!is.na(df$Positive.Rate.Per.Day_7davg)], 1))
 
 ptr_y = 29
 if(max(df$Positive.Rate.Per.Day_7davg,na.rm=T)>30){
@@ -188,6 +192,10 @@ if(max(df$Positive.Rate.Per.Day_7davg,na.rm=T)>30){
   g1 <-  df %>%
     ggplot(aes(x=Date, y=Positive.Rate.Per.Day_7davg)) +
     geom_point(aes(color=Positive.Rate.Level)) +
+    # Texas
+    geom_line(data=df_texas, aes(x=Date, y=Positive.Rate.Per.Day_7davg, color=Positive.Rate.Level)) + 
+    # geom_dl(data=df_texas, label="TX", method = list(dl.combine("last.points"))) + 
+    ggrepel::geom_text_repel(data=df_texas[nrow(df_texas),], label="TX", hjust=1) + 
     # Re-open vertical lines
     geom_vline(xintercept = as.Date("2020-04-30"), color="firebrick", linetype="dashed", alpha=0.8) +
     annotate(geom = "text", x = as.Date("2020-04-28"), color="firebrick",  
@@ -207,10 +215,11 @@ if(max(df$Positive.Rate.Per.Day_7davg,na.rm=T)>30){
     annotate(geom = "rect", xmin = start_date, xmax =  end_date, ymin = 20, ymax = Inf,fill = "red", alpha = 0.1) +    
     # ------------------------------------ # 
     # text for ptr
-    annotate(geom = "text", x= as.Date(df$Date[nrow(df)-15]), y=ptr_y, label=most_recent_ptr, color="grey20", size=4.5, fontface="bold") + 
+    annotate(geom = "text", x= end_date-35, y=ptr_y, label=most_recent_ptr, color="grey20", size=4.5, fontface="bold", hjust=0) + 
+    annotate(geom = "text", x= end_date-35, y=ptr_y-1.8, label=most_recent_ptr_tx, color="grey50", size=4.5, fontface="bold", hjust=0) + 
     # plot settings
     scale_color_manual(values = c("Low" = "darkgreen", "Medium" = "orange", "High" = "#bb5516", "Critical" = "red")) +
-    scale_x_date(name = 'Date', date_breaks = '2 days', date_labels = '%m-%d', expand = c(0,.5),
+    scale_x_date(name = 'Date', date_breaks = '2 days', date_labels = '%m-%d', expand = c(0,1),
                  limits = c(start_date, as.Date(df$Date[nrow(df)]))) +
     scale_y_continuous(labels = function(x) paste0(x, "%")) +
     ylab("Positive Rate Per Day(%)\n(New Case/New Test Per Day)") +
@@ -220,7 +229,7 @@ if(max(df$Positive.Rate.Per.Day_7davg,na.rm=T)>30){
           plot.subtitle = element_text(size=14, color = "grey20", face = "bold"), 
           legend.position = "none") 
   
-  g1 
+  g1  
 })
 ```
 
