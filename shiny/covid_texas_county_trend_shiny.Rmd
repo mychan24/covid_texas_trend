@@ -37,7 +37,6 @@ library(ggplot2)
 library(dplyr)
 library(patchwork)
 library(readxl)
-library(directlabels)
 
 # library(plotly)
 
@@ -195,7 +194,7 @@ if(max(df$Positive.Rate.Per.Day_7davg,na.rm=T)>30){
     # Texas
     geom_line(data=df_texas, aes(x=Date, y=Positive.Rate.Per.Day_7davg, color=Positive.Rate.Level)) + 
     # geom_dl(data=df_texas, label="TX", method = list(dl.combine("last.points"))) + 
-    ggrepel::geom_text_repel(data=df_texas[nrow(df_texas),], label="TX", hjust=1) + 
+    geom_text(data=df_texas[nrow(df_texas),], label="TX", hjust=0.5) + 
     # Re-open vertical lines
     geom_vline(xintercept = as.Date("2020-04-30"), color="firebrick", linetype="dashed", alpha=0.8) +
     annotate(geom = "text", x = as.Date("2020-04-28"), color="firebrick",  
