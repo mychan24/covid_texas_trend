@@ -37,7 +37,7 @@ library(ggplot2)
 library(dplyr)
 library(patchwork)
 library(readxl)
-
+library(ggrepel)
 # library(plotly)
 
 ### Set Theme for ggplot ###
@@ -153,7 +153,6 @@ Sidebar {.sidebar}
 ```{r sidebar}
 # Define inputs
 selectInput('county_name', label = 'Select a county:', choices = counties, selected = "Dallas")
-
 ```
 
 Select __State Trend tab__ to see state-level trend data.
@@ -194,11 +193,20 @@ if(max(df$Positive.Rate.Per.Day_7davg,na.rm=T)>30){
     # Texas
     geom_line(data=df_texas, aes(x=Date, y=Positive.Rate.Per.Day_7davg, color=Positive.Rate.Level)) + 
     # geom_dl(data=df_texas, label="TX", method = list(dl.combine("last.points"))) + 
-    geom_text(data=df_texas[nrow(df_texas),], label="TX", hjust=0.5) + 
+    # geom_text(data=df_texas[nrow(df_texas),], label="TX", hjust=0.5) + 
+    geom_text_repel(data = df_texas[nrow(df_texas),], label="TX", color="firebrick", nudge_y = -1) +
     # Re-open vertical lines
     geom_vline(xintercept = as.Date("2020-04-30"), color="firebrick", linetype="dashed", alpha=0.8) +
-    annotate(geom = "text", x = as.Date("2020-04-28"), color="firebrick",  
-             y = 28, label = "Re-open") +
+    # annotate(geom = "text", x = as.Date("2020-04-28"), color="firebrick",  
+    #          y = 21, label = "Re-open") +
+    geom_label_repel(data = data.frame(x=as.Date("2020-04-30"), y=21, label="TX Re-open"), aes(x=x,y=y,label=label), 
+                    color="firebrick") +    
+    # Mask Mandate vertical lines
+    geom_vline(xintercept = as.Date("2020-07-02"), color="firebrick", linetype="dashed", alpha=0.8) +
+    # annotate(geom = "text", x = as.Date("2020-06-26"), color="firebrick",  
+    #          y = 21, label = "TX Mask Mandate") +    
+    geom_label_repel(data = data.frame(x=as.Date("2020-07-02"), y=21, label="TX Mask Mandate"), aes(x=x,y=y,label=label), 
+                    color="firebrick") +
     # Zone levels horizontal lines
     geom_hline(yintercept = 3, color="grey", linetype="dashed") +
     geom_hline(yintercept = 10, color="grey", linetype="dashed") +
