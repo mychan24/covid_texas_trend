@@ -7,7 +7,7 @@ output:
     social: menu
     source_code: https://github.com/mychan24/covid_dallas_trend
     includes:
-       in_header: google_analytics.html
+       in_header: ../google_analytics.html
 runtime: shiny
 
 ---
