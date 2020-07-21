@@ -14,7 +14,8 @@ Imports:
     rmarkdown,
     tidyverse,
     patchwork,
-    readxl
+    readxl,
+    ggrepel
 Suggests:
 
 RoxygenNote: 5.0.1
