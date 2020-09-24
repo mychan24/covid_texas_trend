@@ -62,35 +62,52 @@ try(download.file(url = "https://dshs.texas.gov/coronavirus/TexasCOVID19DailyCou
 try(download.file(url = "https://dshs.texas.gov/coronavirus/TexasCOVID-19CumulativeTestsOverTimebyCounty.xlsx",
               destfile = "~/COVID-19CumulativeTestTotalsbyCounty.xlsx", mode="wb"), silent = TRUE)
 
+try(download.file(url = "https://dshs.texas.gov/coronavirus/TexasCOVID-19CumulativeTestsbyCounty.xlsx",
+              destfile = "~/COVID-19CumulativeTestTotalsbyCounty_post912.xlsx", mode="wb"), silent = TRUE)
+
 
 # --- Load Case and Test Data --- #
-case <- read_excel(path = "~/TexasCOVID19DailyCountyCaseCountData.xlsx",
+case <- read_excel(path = "~/TexasCOVID19DailyCountyCaseCountData.xlsx",trim_ws = T,
                    skip =2, n_max = 258)
 
 ## remove extra spaces
-names(case)[3:ncol(case)] <- gsub("\r", "", names(case)[3:ncol(case)])
-names(case)[3:ncol(case)] <- gsub("\n", "", names(case)[3:ncol(case)])
-names(case)[3:ncol(case)] <- gsub("Cases", "", names(case)[3:ncol(case)])
-names(case)[3:ncol(case)] <- gsub(" ", "", names(case)[3:ncol(case)])
+names(case)[2:ncol(case)] <- gsub("\r", "", names(case)[2:ncol(case)])
+names(case)[2:ncol(case)] <- gsub("\n", "", names(case)[2:ncol(case)])
+names(case)[2:ncol(case)] <- gsub("Cases", "", names(case)[2:ncol(case)])
+names(case)[2:ncol(case)] <- gsub(" ", "", names(case)[2:ncol(case)])
 case$`County Name`[which(case$`County Name`=="Total")] <- "TOTAL"
 
 t <- read_excel(path = "~/COVID-19CumulativeTestTotalsbyCounty.xlsx",
                 skip =1, n_max = 258)
-
+t_p912 <- read_excel(path = "~/COVID-19CumulativeTestTotalsbyCounty_post912.xlsx",
+                skip =1, n_max = 258)
 # file.remove("./TexasCOVID19DailyCountyCaseCountData.xlsx")
 # file.remove("./COVID-19CumulativeTestTotalsbyCounty.xlsx")
 
 names(t)[2:ncol(t)] <- sub("Tests Through ", "", names(t)[2:ncol(t)])
+t <- t[!t$County=="Pending Assignments",]
+
+names(t_p912)[2:ncol(t_p912)] <- as.character(as.Date(as.numeric(names(t_p912)[2:ncol(t_p912)]), origin = "1899-12-30"))
+names(t_p912)[2:ncol(t_p912)] <- gsub("2020-", "", names(t_p912)[2:ncol(t_p912)])
+t_p912$County[t_p912$County=="Total"] <- "TOTAL"
+
+t <- cbind(t, t_p912[,2:ncol(t_p912)])
+
 # --- Texas county data cleaning and calculating positive test rate (ptr) --- #
 counties <- t$County[t[,ncol(t)]>3000]
-counties <- counties[!is.element(counties, c("Unknown", "Pending Assignments"))]
+counties <- counties[!is.element(counties, c("Unknown"))]
+
+# most recent date:
+recentdates <- data.frame(data=c("case","t"), recent_date=c(names(case)[ncol(case)],  names(t)[ncol(t)]))
+update_until <- as.character(recentdates$recent_date[order(recentdates$recent_date)==1])
+
 
 df_list <- list()
 for(cc in 1:length(counties)){
-  ## Dallas Positive Rate data
-  df <- data.frame(Date=names(case)[(which(names(case)=="04-21")+1):ncol(case)],
-                   Total.Test.Performed = as.numeric(t[t$County==counties[cc],2:ncol(t)]),
-                   Total.Cases = as.numeric(case[which(case$`County Name`==counties[cc]),(which(names(case)=="04-21")+1):ncol(case)-1]))
+  ## County Positive Rate data
+  df <- data.frame(Date=names(case)[(which(names(case)=="04-21")):which(names(case)==update_until)],
+                   Total.Test.Performed = as.numeric(t[t$County==counties[cc],2:which(names(t)==update_until)]),
+                   Total.Cases = as.numeric(case[which(case$`County Name`==counties[cc]),(which(names(case)=="04-21")):which(names(case)==update_until)]))
   
   df$Positive.Rate <- df$Total.Cases/df$Total.Test.Performed*100
   df$Date <- as.Date(df$Date, "%m-%d")
