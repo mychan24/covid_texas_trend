@@ -91,7 +91,7 @@ names(t_p912)[2:ncol(t_p912)] <- as.character(as.Date(as.numeric(names(t_p912)[2
 names(t_p912)[2:ncol(t_p912)] <- gsub("2020-", "", names(t_p912)[2:ncol(t_p912)])
 t_p912$County[t_p912$County=="Total"] <- "TOTAL"
 
-t <- cbind(t, t_p912[,2:ncol(t_p912)])
+t <- cbind(t, t_p912[!is.na(t_p912$County),2:ncol(t_p912)])
 
 # --- Texas county data cleaning and calculating positive test rate (ptr) --- #
 counties <- t$County[t[,ncol(t)]>3000]
@@ -105,7 +105,7 @@ update_until <- as.character(recentdates$recent_date[order(recentdates$recent_da
 df_list <- list()
 for(cc in 1:length(counties)){
   ## County Positive Rate data
-  df <- data.frame(Date=names(case)[(which(names(case)=="04-21")):which(names(case)==update_until)],
+  df <- data.frame(Date=names(case)[which(names(case)=="04-21"):which(names(case)==update_until)],
                    Total.Test.Performed = as.numeric(t[t$County==counties[cc],2:which(names(t)==update_until)]),
                    Total.Cases = as.numeric(case[which(case$`County Name`==counties[cc]),(which(names(case)=="04-21")):which(names(case)==update_until)]))
   
@@ -154,6 +154,7 @@ for(cc in 1:length(counties)){
 }
 
 df_texas <- df_list[["TOTAL"]]
+df_texas$group <- 1 # for grouping the line together when plotted
 
 df_list[["TOTAL"]] <- NULL
 counties <- counties[counties!="TOTAL"]
@@ -210,22 +211,16 @@ if(max(df$Positive.Rate.Per.Day_7davg,na.rm=T)>30){
     ggplot(aes(x=Date, y=Positive.Rate.Per.Day_7davg)) +
     geom_point(aes(color=Positive.Rate.Level)) +
     # Texas
-    geom_line(data=df_texas, aes(x=Date, y=Positive.Rate.Per.Day_7davg, color=Positive.Rate.Level)) + 
-    # geom_dl(data=df_texas, label="TX", method = list(dl.combine("last.points"))) + 
-    # geom_text(data=df_texas[nrow(df_texas),], label="TX", hjust=0.5) + 
+    geom_line(data=df_texas, aes(x=Date, y=Positive.Rate.Per.Day_7davg, group=1, color=Positive.Rate.Level)) + 
     geom_text_repel(data = df_texas[nrow(df_texas),], label="TX", color="firebrick", nudge_y = -1) +
     # Re-open vertical lines
     geom_vline(xintercept = as.Date("2020-04-30"), color="firebrick", linetype="dashed", alpha=0.8) +
-    # annotate(geom = "text", x = as.Date("2020-04-28"), color="firebrick",  
-    #          y = 21, label = "Re-open") +
     geom_label_repel(data = data.frame(x=as.Date("2020-04-30"), y=21, label="TX Re-open"), aes(x=x,y=y,label=label), 
-                    color="firebrick") +    
+                     color="firebrick") +    
     # Mask Mandate vertical lines
     geom_vline(xintercept = as.Date("2020-07-02"), color="firebrick", linetype="dashed", alpha=0.8) +
-    # annotate(geom = "text", x = as.Date("2020-06-26"), color="firebrick",  
-    #          y = 21, label = "TX Mask Mandate") +    
     geom_label_repel(data = data.frame(x=as.Date("2020-07-02"), y=21, label="TX Mask Mandate"), aes(x=x,y=y,label=label), 
-                    color="firebrick") +
+                     color="firebrick") +
     # Zone levels horizontal lines
     geom_hline(yintercept = 3, color="grey", linetype="dashed") +
     geom_hline(yintercept = 10, color="grey", linetype="dashed") +
