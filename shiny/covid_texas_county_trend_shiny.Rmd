@@ -5,9 +5,7 @@ output:
     orientation: rows
     vertical_layout: fill
     social: menu
-    source_code: https://github.com/mychan24/covid_dallas_trend
-    includes:
-       in_header: ../google_analytics.html
+    source_code: https://github.com/mychan24/covid_texas_trend
 runtime: shiny
 
 ---
