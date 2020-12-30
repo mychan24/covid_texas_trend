@@ -225,19 +225,20 @@ if(max(df$Positive.Rate.Per.Day_7davg,na.rm=T)>30){
     geom_hline(yintercept = 3, color="grey", linetype="dashed") +
     geom_hline(yintercept = 10, color="grey", linetype="dashed") +
     geom_hline(yintercept = 20, color="grey", linetype="dashed") +
-    annotate(geom = "text", x = start_date+2, y = 1, label = "Low", color="darkgreen", fontface="bold") + 
-    annotate(geom = "text", x = start_date+3, y = 6, label = "Medium", color="orange", fontface="bold") + 
-    annotate(geom = "text", x = start_date+2, y = 15, label = "High", color="#bb5516", fontface="bold") + 
-    annotate(geom = "text", x = start_date+3, y = 25, label = "Critical", color="red", fontface="bold") + 
+    annotate(geom = "text", x = start_date+4, y = 1, label = "Low", color="darkgreen", fontface="bold") + 
+    annotate(geom = "text", x = start_date+5, y = 6, label = "Medium", color="orange", fontface="bold") + 
+    annotate(geom = "text", x = start_date+4, y = 15, label = "High", color="#bb5516", fontface="bold") + 
+    annotate(geom = "text", x = start_date+5, y = 25, label = "Critical", color="red", fontface="bold") + 
     # --- background color for levels --- # 
     annotate(geom = "rect", xmin = start_date, xmax =  end_date, ymin = -Inf, ymax = 3, fill = "darkgreen", alpha = 0.1) +  
     annotate(geom = "rect", xmin = start_date, xmax =  end_date, ymin = 3, ymax = 10,fill = "orange", alpha = 0.1) +  
     annotate(geom = "rect", xmin = start_date, xmax =  end_date, ymin = 10, ymax = 20,fill = "#bb5516", alpha = 0.1) +  
     annotate(geom = "rect", xmin = start_date, xmax =  end_date, ymin = 20, ymax = Inf,fill = "red", alpha = 0.1) +    
-    # ------------------------------------ # 
-    # text for ptr
-    annotate(geom = "text", x= end_date-35, y=ptr_y, label=most_recent_ptr, color="grey20", size=4.5, fontface="bold", hjust=0) + 
-    annotate(geom = "text", x= end_date-35, y=ptr_y-3, label=most_recent_ptr_tx, color="grey50", size=4.5, fontface="bold", hjust=0) + 
+    # --- text for ptr --- #
+    annotate(geom = "text", x= median(seq(as.Date(start_date), as.Date(end_date), by="days")), 
+             y=ptr_y, label=most_recent_ptr, color="grey20", size=4.5, fontface="bold", hjust=0) + 
+    annotate(geom = "text", x= median(seq(as.Date(start_date), as.Date(end_date), by="days"))
+             , y=ptr_y-3, label=most_recent_ptr_tx, color="grey50", size=4.5, fontface="bold", hjust=0) + 
     # plot settings
     scale_color_manual(values = c("Low" = "darkgreen", "Medium" = "orange", "High" = "#bb5516", "Critical" = "red")) +
     scale_x_date(name = 'Date', date_breaks = '2 days', date_labels = '%m-%d', expand = c(0,1),
