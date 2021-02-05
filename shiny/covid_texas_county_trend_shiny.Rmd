@@ -98,16 +98,16 @@ counties <- t$County[t[,ncol(t)]>3000]
 counties <- counties[!is.element(counties, c("Unknown"))]
 
 # most recent date:
-recentdates <- data.frame(data=c("case","t"), recent_date=c(names(case)[ncol(case)],  names(t)[ncol(t)]))
+recentdates <- data.frame(data=c("case","t"), recent_date=c(names(case)[ncol(case)],  paste0(names(t)[ncol(t)], "-2021")))
 update_until <- as.character(recentdates$recent_date[order(recentdates$recent_date)==1])
 
 
 df_list <- list()
 for(cc in 1:length(counties)){
   ## County Positive Rate data
-  df <- data.frame(Date=names(case)[which(names(case)=="04-21"):which(names(case)==update_until)],
-                   Total.Test.Performed = as.numeric(t[t$County==counties[cc],2:which(names(t)==update_until)]),
-                   Total.Cases = as.numeric(case[which(case$`County Name`==counties[cc]),(which(names(case)=="04-21")):which(names(case)==update_until)]))
+  df <- data.frame(Date = names(case)[which(names(case)=="04-21-2020"):which(names(case)==update_until)],
+                   Total.Test.Performed = as.numeric(t[t$County==counties[cc],2:which(names(t)==substr(update_until,1,5))]),
+                   Total.Cases = as.numeric(case[which(case$`County Name`==counties[cc]),which(names(case)=="04-21-2020"):which(names(case)==update_until)]))
 
   df$Date_wYear <- NA
   df$Date_wYear[1:255] <- paste0("2020-", df$Date[1:255])
@@ -212,7 +212,7 @@ most_recent_ptr <- sprintf("Most Recent Positive Rate in %s County: %.1f%%", inp
 ptr_y = 29
 if(max(df$Positive.Rate.Per.Day_7davg,na.rm=T)>30){
   ptr_y <- max(df$Positive.Rate.Per.Day_7davg,na.rm=T)+2
-  }
+}
 
   g1 <-  df %>%
     ggplot(aes(x=Date, y=Positive.Rate.Per.Day_7davg)) +
