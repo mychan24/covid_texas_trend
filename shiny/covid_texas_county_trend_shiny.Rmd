@@ -85,7 +85,7 @@ t_p912 <- read_excel(path = "~/COVID-19CumulativeTestTotalsbyCounty_post912.xlsx
 names(t)[2:ncol(t)] <- sub("Tests Through ", "", names(t)[2:ncol(t)])
 t <- t[!t$County=="Pending Assignments",]
 
-names(t_p912)[2:ncol(t_p912)] <- as.character(as.Date(as.numeric(names(t_p912)[2:ncol(t_p912)]), origin = "1899-12-30"))
+names(t_p912)[2:ncol(t_p912)] <- as.character(as.Date(names(t_p912)[2:ncol(t_p912)], origin = "1899-12-30"))
 names(t_p912)[2:ncol(t_p912)] <- gsub("2020-", "", names(t_p912)[2:ncol(t_p912)])
 names(t_p912)[2:ncol(t_p912)] <- gsub("2021-", "", names(t_p912)[2:ncol(t_p912)])
 
