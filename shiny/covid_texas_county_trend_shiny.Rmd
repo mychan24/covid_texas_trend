@@ -293,7 +293,7 @@ g2 <- df %>%
     annotate(geom = "text", x = as.Date("2020-04-28"),color="firebrick",  
              y = max(df$New.Case.Reported_7davg,na.rm=T)-max(df$New.Case.Reported_7davg,na.rm=T)/4, label = "Re-open") +
     # plot settings
-    scale_x_date(name = 'Date', date_breaks = '2 days', date_labels = '%m-%d', expand = c(0,.5), limits = c(start_date, end_date)) +
+    scale_x_date(name = 'Date', date_breaks = '10 days', date_labels = '%m-%d', expand = c(0,.5), limits = c(start_date, end_date)) +
     ylab("New Cases Per Day\n(7-day average)") +
     ggtitle(label = "New Cases Per Day Over Time (7-day average)", 
             subtitle = sprintf("%s County", input$county_name)) +
