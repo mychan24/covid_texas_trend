@@ -5,8 +5,8 @@ account: mychan24
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 2549086
-bundleId: 4069688
+bundleId: 4418112
 url: https://mychan24.shinyapps.io/covid_texas_county_trend_shiny/
-when: 1610050529.06435
+when: 1617233488.55621
 asMultiple: FALSE
 asStatic: FALSE
