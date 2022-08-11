@@ -53,71 +53,95 @@ theme_mobile <- theme_bw() +
               plot.title = element_text(size=10, face=("plain")))
 
 # --- Download data from dshs.texas.gov --- #
+count_path <- "~/TexasCOVID19DailyCountyCaseCountData.xlsx"
+test_path <- "~/COVID-19CumulativeTestTotalsbyCounty.xlsx"
+testpost912_path <- "~/COVID-19CumulativeTestTotalsbyCounty_post912.xlsx"
 
+try(download.file(url = "https://dshs.texas.gov/coronavirus/TexasCOVID19DailyCountyCaseCountData.xlsx", 
+                  destfile = count_path, mode="wb"), silent = TRUE)
 
-try(download.file(url = "https://dshs.texas.gov/coronavirus/TexasCOVID19DailyCountyCaseCountData.xlsx", destfile = "~/TexasCOVID19DailyCountyCaseCountData.xlsx", mode="wb"), silent = TRUE)
-
+# Test data has been archived and stopped updating on 4/7/2022
 try(download.file(url = "https://dshs.texas.gov/coronavirus/TexasCOVID-19CumulativeTestsOverTimebyCounty.xlsx",
-              destfile = "~/COVID-19CumulativeTestTotalsbyCounty.xlsx", mode="wb"), silent = TRUE)
+              destfile = test_path, mode="wb"), silent = TRUE)
 
 try(download.file(url = "https://dshs.texas.gov/coronavirus/TexasCOVID-19CumulativeTestsbyCounty.xlsx",
-              destfile = "~/COVID-19CumulativeTestTotalsbyCounty_post912.xlsx", mode="wb"), silent = TRUE)
-
+              destfile = testpost912_path, mode="wb"), silent = TRUE)
 
 # --- Load Case and Test Data --- #
-case <- read_excel(path = "~/TexasCOVID19DailyCountyCaseCountData.xlsx",trim_ws = T,
-                   skip =2, n_max = 258)
+case2020 <- read_excel(path = count_path, trim_ws = T, skip =2, n_max = 258, sheet = 1)
+case2021 <- read_excel(path = count_path, trim_ws = T, skip =2, n_max = 258, sheet = 2)
+case2022 <- read_excel(path = count_path ,trim_ws = T, skip =2, n_max = 258, sheet = 3)
 
-## remove extra spaces
-names(case)[2:ncol(case)] <- gsub("\r", "", names(case)[2:ncol(case)])
-names(case)[2:ncol(case)] <- gsub("\n", "", names(case)[2:ncol(case)])
-names(case)[2:ncol(case)] <- gsub("Cases", "", names(case)[2:ncol(case)])
-names(case)[2:ncol(case)] <- gsub(" ", "", names(case)[2:ncol(case)])
-case$`County Name`[which(case$`County Name`=="Total")] <- "TOTAL"
+case2020 <- case2020[,1:(ncol(case2020)-2)]
 
-t <- read_excel(path = "~/COVID-19CumulativeTestTotalsbyCounty.xlsx",
-                skip =1, n_max = 258)
-t_p912 <- read_excel(path = "~/COVID-19CumulativeTestTotalsbyCounty_post912.xlsx",
-                skip =1, n_max = 258)
-# file.remove("./TexasCOVID19DailyCountyCaseCountData.xlsx")
-# file.remove("./COVID-19CumulativeTestTotalsbyCounty.xlsx")
+names(case2020)[2:ncol(case2020)] <- as.character(seq(as.Date("2020/03/06"), 
+                                                      by = "day", length.out = (ncol(case2020)-1)),
+                                                  format("%m-%d-%Y"))
+names(case2021)[2:ncol(case2021)] <- as.character(seq(as.Date("2021/01/01"), 
+                                                      by = "day", length.out = (ncol(case2021)-1)),
+                                                  format("%m-%d-%Y"))
+names(case2022)[2:ncol(case2022)] <- as.character(seq(as.Date("2022/01/01"), 
+                                                      by = "day", length.out = (ncol(case2022)-1)),
+                                                  format("%m-%d-%Y"))
 
-names(t)[2:ncol(t)] <- sub("Tests Through ", "", names(t)[2:ncol(t)])
-t <- t[!t$County=="Pending Assignments",]
+case2020$County[which(case2020$County=="Total")] <- "TOTAL"
+case2021$County[which(case2021$County=="Total")] <- "TOTAL"
+case2022$County[which(case2022$County=="Total")] <- "TOTAL"
 
-names(t_p912)[2:ncol(t_p912)] <- as.character(as.Date(names(t_p912)[2:ncol(t_p912)], origin = "1899-12-30"))
-names(t_p912)[2:ncol(t_p912)] <- gsub("2020-", "", names(t_p912)[2:ncol(t_p912)])
-names(t_p912)[2:ncol(t_p912)] <- gsub("2021-", "", names(t_p912)[2:ncol(t_p912)])
+## Remove rows right before and after "total" which is incomplete, notes and NA
+case2020 <- case2020[c(1:(which(case2020$County=="TOTAL")-2), which(case2020$County=="TOTAL")),]
+case2021 <- case2021[c(1:(which(case2021$County=="TOTAL")-2), which(case2021$County=="TOTAL")),]
+case2022 <- case2022[c(1:(which(case2022$County=="TOTAL")-2), which(case2022$County=="TOTAL")),]
 
-t_p912$County[t_p912$County=="Total"] <- "TOTAL"
+case <- merge(case2020, case2021, by="County", all.x = T, all.y=T)
+case <- merge(case, case2022, by="County", all.x = T, all.y=T)
 
-t <- cbind(t, t_p912[!is.na(t_p912$County),2:ncol(t_p912)])
+### --- --- ###
+# Test data
+### --- --- ###
+t_pre <- read_excel(path = test_path, skip =1, n_max = 258) # first 6 mos of test data is diff data sheet
+t_p912_2020 <- read_excel(path = testpost912_path, skip =1, sheet = 1, n_max = 258)
+t_p912_2020$County[which(t_p912_2020$County=="Total")] <- "TOTAL"
+
+t_2021 <- read_excel(path = testpost912_path, skip =1, sheet = 2, n_max = 258)
+t_2021$County[which(t_2021$County=="Total")] <- "TOTAL"
+
+t_2022 <- read_excel(path = testpost912_path, skip =1, sheet = 3, n_max = 258)
+t_2022$County[which(t_2022$County=="Total")] <- "TOTAL"
+
+names(t_pre)[2:ncol(t_pre)] <- as.character(seq(as.Date("2020/04/21"),
+                                                      by = "day", length.out = (ncol(t_pre)-1)), format("%m-%d-%Y"))
+names(t_p912_2020)[2:ncol(t_p912_2020)] <- as.character(seq(as.Date("2020/09/13"), 
+                                                      by = "day", length.out = (ncol(t_p912_2020)-1)), format("%m-%d-%Y"))
+names(t_2021)[2:ncol(t_2021)] <- as.character(seq(as.Date("2021/01/01"), 
+                                                      by = "day", length.out = (ncol(t_2021)-1)), format("%m-%d-%Y"))
+names(t_2022)[2:ncol(t_2022)] <- as.character(seq(as.Date("2022/01/01"), 
+                                                      by = "day", length.out = (ncol(t_2022)-1)), format("%m-%d-%Y"))
+# merge data
+t <- merge(t_pre, t_p912_2020, by="County", all.x = T, all.y=T)
+t <- merge(t, t_2021, by="County", all.x = T, all.y=T)
+t <- merge(t, t_2022, by="County", all.x = T, all.y=T)
+
+t <- t[!is.na(t$County),]
 
 # --- Texas county data cleaning and calculating positive test rate (ptr) --- #
 counties <- t$County[t[,ncol(t)]>3000]
 counties <- counties[!is.element(counties, c("Unknown"))]
+counties <- counties[!is.na(counties)]
 
 # most recent date:
-recentdates <- data.frame(data=c("case","t"), recent_date=c(names(case)[ncol(case)],  paste0(names(t)[ncol(t)], "-2021")))
+recentdates <- data.frame(data=c("case","t"), recent_date=c(tail(names(case),1),  tail(names(t),1)))
 update_until <- as.character(recentdates$recent_date[order(recentdates$recent_date)==1])
-
 
 df_list <- list()
 for(cc in 1:length(counties)){
   ## County Positive Rate data
   df <- data.frame(Date = names(case)[which(names(case)=="04-21-2020"):which(names(case)==update_until)],
-                   Total.Test.Performed = as.numeric(t[t$County==counties[cc],2:which(names(t)==substr(update_until,1,5))]),
-                   Total.Cases = as.numeric(case[which(case$`County Name`==counties[cc]),which(names(case)=="04-21-2020"):which(names(case)==update_until)]))
+                   Total.Test.Performed = as.numeric(t[which(t$County==counties[cc]),2:which(names(t)==update_until)]),
+                   Total.Cases = as.numeric(case[case$County==counties[cc],which(names(case)=="04-21-2020"):which(names(case)==update_until)]))
 
-  df$Date_wYear <- NA
-  df$Date_wYear[1:255] <- paste0("2020-", df$Date[1:255])
-  df$Date_wYear[256:length(df$Date)] <- paste0("2021-", df$Date[256:length(df$Date)])
-  
-  df$Date <- NA
-  df$Date <- df$Date_wYear
-  
   df$Positive.Rate <- df$Total.Cases/df$Total.Test.Performed*100
-  df$Date <- as.Date(df$Date, "%Y-%m-%d")
+  df$Date <- as.Date(df$Date, "%m-%d-%Y")
   
   # --- Calculate New-case per day &  Positive Rate --- #
   ## Calculate new-test each day
@@ -170,10 +194,16 @@ start_date <- as.Date("2020-04-22")
 end_date <- as.Date(df_texas$Date[nrow(df_texas)])
 
 most_recent_ptr_tx <- sprintf("Most Recent Positive Rate in Texas: %.1f%%", tail(df_texas$Positive.Rate.Per.Day_7davg[!is.na(df_texas$Positive.Rate.Per.Day_7davg)], 1))
+
+# Clean up files
+file.remove(count_path)
+file.remove(test_path)
+file.remove(testpost912_path)
 ```
 
 Sidebar {.sidebar}
 ======================================================================
+<font size="-3"><p> __4/7/2022 UPDATE:__ Texas DSHS has discontinued updating testing data, so positive-rate can no longer be updated.</p></font>
 
 <font size="-2"><p> __Disclaimer:__ These data were (i) collected different geographical locations, (ii) reported by different entities, and (iii) based only on __'individuals that got tested'__. These trends are only as accurate as the underlying "reported" cases/tests, and should be interpreted or compared with great caution.</p></font>
 
@@ -222,11 +252,11 @@ if(max(df$Positive.Rate.Per.Day_7davg,na.rm=T)>30){
     geom_text_repel(data = df_texas[nrow(df_texas),], label="TX", color="firebrick", nudge_y = -1) +
     # Re-open vertical lines
     geom_vline(xintercept = as.Date("2020-04-30"), color="firebrick", linetype="dashed", alpha=0.8) +
-    geom_label_repel(data = data.frame(x=as.Date("2020-04-30"), y=21, label="TX Re-open\n4/30/2020"), aes(x=x,y=y,label=label), 
+    geom_label_repel(data = data.frame(x=as.Date("2020-04-30"), y=28, label="TX Re-open\n4/30/2020"), aes(x=x,y=y,label=label), 
                      color="firebrick") +    
     # Mask Mandate vertical lines
     geom_vline(xintercept = as.Date("2020-07-02"), color="firebrick", linetype="dashed", alpha=0.8) +
-    geom_label_repel(data = data.frame(x=as.Date("2020-07-02"), y=21, label="TX Mask Mandate\n7/2/2020"), aes(x=x,y=y,label=label), 
+    geom_label_repel(data = data.frame(x=as.Date("2020-07-02"), y=24, label="TX Mask Mandate\n7/2/2020"), aes(x=x,y=y,label=label), 
                      color="firebrick") +
     # Texas FEMA vaccination centers
     geom_vline(xintercept = as.Date("2021-02-24"), color="darkgreen", linetype="dashed", alpha=0.8) +
@@ -234,21 +264,21 @@ if(max(df$Positive.Rate.Per.Day_7davg,na.rm=T)>30){
                      color="darkgreen") +
     # Mask Mandate ended (Texas) vertical lines
     geom_vline(xintercept = as.Date("2021-03-10"), color="darkgreen", linetype="dashed", alpha=0.8) +
-    geom_label_repel(data = data.frame(x=as.Date("2021-03-10"), y=21, label="TX Mask Mandate Ended\nTexas 100% Open\n3/10/2021"), aes(x=x,y=y,label=label, hjust=1), 
+    geom_label_repel(data = data.frame(x=as.Date("2021-03-10"), y=17, label="TX Mask Mandate Ended\nTexas 100% Open\n3/10/2021"), aes(x=x,y=y,label=label, hjust=1), 
                      color="darkgreen") +
     # CDC mask recommendation for fully vaccinated
     geom_vline(xintercept = as.Date("2021-07-27"), color="firebrick", linetype="dashed", alpha=0.8) +
-    geom_label_repel(data = data.frame(x=as.Date("2021-07-27"), y=21, label="CDC Mask Recommends for\nFully-vacinated due to Delta Variant\n 7/27/2021"), aes(x=x,y=y,label=label), 
+    geom_label_repel(data = data.frame(x=as.Date("2021-07-27"), y=17, label="CDC Mask Recommends for\nFully-vacinated due to Delta Variant\n 7/27/2021"), aes(x=x,y=y,label=label), 
                      color="firebrick") +    
     
     # Zone levels horizontal lines
     geom_hline(yintercept = 3, color="grey", linetype="dashed") +
     geom_hline(yintercept = 10, color="grey", linetype="dashed") +
     geom_hline(yintercept = 20, color="grey", linetype="dashed") +
-    annotate(geom = "text", x = start_date+4, y = 1, label = "Low", color="darkgreen", fontface="bold") + 
-    annotate(geom = "text", x = start_date+5, y = 6, label = "Medium", color="orange", fontface="bold") + 
-    annotate(geom = "text", x = start_date+4, y = 15, label = "High", color="#bb5516", fontface="bold") + 
-    annotate(geom = "text", x = start_date+5, y = 25, label = "Critical", color="red", fontface="bold") + 
+    annotate(geom = "text", x = start_date+8, y = 1, label = "Low", color="darkgreen", fontface="bold") + 
+    annotate(geom = "text", x = start_date+10, y = 6, label = "Medium", color="orange", fontface="bold") + 
+    annotate(geom = "text", x = start_date+8, y = 15, label = "High", color="#bb5516", fontface="bold") + 
+    annotate(geom = "text", x = start_date+10, y = 25, label = "Critical", color="red", fontface="bold") + 
     # --- background color for levels --- # 
     annotate(geom = "rect", xmin = start_date, xmax =  end_date, ymin = -Inf, ymax = 3, fill = "darkgreen", alpha = 0.1) +  
     annotate(geom = "rect", xmin = start_date, xmax =  end_date, ymin = 3, ymax = 10,fill = "orange", alpha = 0.1) +  
@@ -290,7 +320,7 @@ g2 <- df %>%
     geom_bar(stat = "identity", fill="#cc5500") +
     # Re-open vertical lines
     geom_vline(xintercept = as.Date("2020-04-30"), color="firebrick", linetype="dashed", alpha=0.8) +
-    annotate(geom = "text", x = as.Date("2020-04-28"),color="firebrick",  
+    annotate(geom = "text", x = as.Date("2020-05-04"),color="firebrick",  
              y = max(df$New.Case.Reported_7davg,na.rm=T)-max(df$New.Case.Reported_7davg,na.rm=T)/4, label = "Re-open") +
     # plot settings
     scale_x_date(name = 'Date', date_breaks = '10 days', date_labels = '%m-%d', expand = c(0,.5), limits = c(start_date, end_date)) +
@@ -305,7 +335,7 @@ g3 <- df %>%
     geom_bar(stat = "identity", fill="#009a9a") +
     # Re-open vertical lines
     geom_vline(xintercept = as.Date("2020-04-30"), color="firebrick", linetype="dashed", alpha=0.8) +
-    annotate(geom = "text", x = as.Date("2020-04-28"), color="firebrick",  
+    annotate(geom = "text", x = as.Date("2020-05-04"), color="firebrick",  
              y = max(df$New.Test.Reported_7davg,na.rm=T)-max(df$New.Test.Reported_7davg,na.rm=T)/4, label = "Re-open") +
     # plot settings
     scale_x_date(name = 'Date', date_breaks = '10 days', date_labels = '%m-%d', expand = c(0,.5), limits = c(start_date, end_date)) +
@@ -347,7 +377,7 @@ if(max(df_texas$Positive.Rate.Per.Day_7davg,na.rm=T)>30){
                      color="firebrick") +    
     # Mask Mandate vertical lines
     geom_vline(xintercept = as.Date("2020-07-02"), color="firebrick", linetype="dashed", alpha=0.8) +
-    geom_label_repel(data = data.frame(x=as.Date("2020-07-02"), y=28, label="TX Mask Mandate\n7/2/2020"), aes(x=x,y=y,label=label), 
+    geom_label_repel(data = data.frame(x=as.Date("2020-07-02"), y=24, label="TX Mask Mandate\n7/2/2020"), aes(x=x,y=y,label=label), 
                      color="firebrick") +
     # Texas FEMA vaccination centers
     geom_vline(xintercept = as.Date("2021-02-24"), color="darkgreen", linetype="dashed", alpha=0.8) +
@@ -365,10 +395,10 @@ if(max(df_texas$Positive.Rate.Per.Day_7davg,na.rm=T)>30){
     geom_hline(yintercept = 3, color="grey", linetype="dashed") +
     geom_hline(yintercept = 10, color="grey", linetype="dashed") +
     geom_hline(yintercept = 20, color="grey", linetype="dashed") +
-    annotate(geom = "text", x = start_date+2, y = 1, label = "Low", color="darkgreen", fontface="bold") + 
-    annotate(geom = "text", x = start_date+3, y = 6, label = "Medium", color="orange", fontface="bold") + 
-    annotate(geom = "text", x = start_date+2, y = 15, label = "High", color="#bb5516", fontface="bold") + 
-    annotate(geom = "text", x = start_date+2, y = 25, label = "Critical", color="red", fontface="bold") + 
+    annotate(geom = "text", x = start_date+8, y = 1, label = "Low", color="darkgreen", fontface="bold") + 
+    annotate(geom = "text", x = start_date+10, y = 6, label = "Medium", color="orange", fontface="bold") + 
+    annotate(geom = "text", x = start_date+8, y = 15, label = "High", color="#bb5516", fontface="bold") + 
+    annotate(geom = "text", x = start_date+10, y = 25, label = "Critical", color="red", fontface="bold") + 
     # --- background color for levels --- # 
     annotate(geom = "rect", xmin = start_date, xmax = end_date, ymin = -Inf, ymax = 3, fill = "darkgreen", alpha = 0.1) +  
     annotate(geom = "rect", xmin = start_date, xmax = end_date, ymin = 3, ymax = 10, fill = "orange", alpha = 0.1) +  
@@ -406,10 +436,10 @@ g5 <- df_texas %>%
     geom_bar(stat = "identity", fill="#cc5500") +
     # Re-open vertical lines
     geom_vline(xintercept = as.Date("2020-04-30", "%Y-%m-%d"), color="firebrick", linetype="dashed", alpha=0.8) +
-    annotate(geom = "text", x = as.Date("2020-04-28", "%Y-%m-%d"),color="firebrick",  
+    annotate(geom = "text", x = as.Date("2020-05-04"),color="firebrick",  
              y = max(df_texas$New.Case.Reported_7davg,na.rm=T)-max(df_texas$New.Case.Reported_7davg,na.rm=T)/4, label = "Re-open") +
     # plot settings
-    scale_x_date(name = 'Date', date_breaks = '2 days', date_labels = '%m-%d', expand = c(0,.5), limits = c(start_date, end_date)) +
+    scale_x_date(name = 'Date', date_breaks = '10 days', date_labels = '%m-%d', expand = c(0,.5), limits = c(start_date, end_date)) +
     ylab("New Cases Per Day\n(7-day average)") +
     ggtitle(label = "New Cases Per Day Over Time (7-day average)") +
     theme(axis.text.x = element_text(angle = 45, hjust = 1),
@@ -420,7 +450,7 @@ g6 <- df_texas %>%
     geom_bar(stat = "identity", fill="#009a9a") +
     # Re-open vertical lines
     geom_vline(xintercept = as.Date("2020-04-30", "%Y-%m-%d"), color="firebrick", linetype="dashed", alpha=0.8) +
-    annotate(geom = "text", x = as.Date("2020-04-28", "%Y-%m-%d"),color="firebrick",  
+    annotate(geom = "text", x = as.Date("2020-05-04"),color="firebrick",  
              y = max(df_texas$New.Test.Reported_7davg,na.rm=T)-max(df_texas$New.Test.Reported_7davg,na.rm=T)/4, label = "Re-open") +
     # plot settings
     scale_x_date(name = 'Date', date_breaks = '10 days', date_labels = '%m-%d', expand = c(0,.5), limits = c(start_date, end_date)) +
