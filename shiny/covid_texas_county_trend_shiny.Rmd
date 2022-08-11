@@ -57,14 +57,30 @@ count_path <- "~/TexasCOVID19DailyCountyCaseCountData.xlsx"
 test_path <- "~/COVID-19CumulativeTestTotalsbyCounty.xlsx"
 testpost912_path <- "~/COVID-19CumulativeTestTotalsbyCounty_post912.xlsx"
 
-try(download.file(url = "https://dshs.texas.gov/coronavirus/TexasCOVID19DailyCountyCaseCountData.xlsx", 
+
+### === ###
+# Data download
+### === ###
+# When data used to be download directly from DSHS
+# try(download.file(url = "https://dshs.texas.gov/coronavirus/TexasCOVID19DailyCountyCaseCountData.xlsx", 
+#                   destfile = count_path, mode="wb"), silent = TRUE)
+# 
+# # Test data has been archived and stopped updating on 4/7/2022
+# try(download.file(url = "https://dshs.texas.gov/coronavirus/TexasCOVID-19CumulativeTestsOverTimebyCounty.xlsx",
+#               destfile = test_path, mode="wb"), silent = TRUE)
+# 
+# try(download.file(url = "https://dshs.texas.gov/coronavirus/TexasCOVID-19CumulativeTestsbyCounty.xlsx",
+#               destfile = testpost912_path, mode="wb"), silent = TRUE)
+
+# Using back-up link on GitHub since Testing data is no longer updated
+try(download.file(url = "https://github.com/mychan24/covid_texas_trend/raw/master/data/TexasCOVID19DailyCountyCaseCountData.xlsx",
                   destfile = count_path, mode="wb"), silent = TRUE)
 
 # Test data has been archived and stopped updating on 4/7/2022
-try(download.file(url = "https://dshs.texas.gov/coronavirus/TexasCOVID-19CumulativeTestsOverTimebyCounty.xlsx",
+try(download.file(url = "https://github.com/mychan24/covid_texas_trend/raw/master/data/COVID-19CumulativeTestTotalsbyCounty.xlsx",
               destfile = test_path, mode="wb"), silent = TRUE)
 
-try(download.file(url = "https://dshs.texas.gov/coronavirus/TexasCOVID-19CumulativeTestsbyCounty.xlsx",
+try(download.file(url = "https://github.com/mychan24/covid_texas_trend/raw/master/data/COVID-19CumulativeTestTotalsbyCounty_post912.xlsx",
               destfile = testpost912_path, mode="wb"), silent = TRUE)
 
 # --- Load Case and Test Data --- #
